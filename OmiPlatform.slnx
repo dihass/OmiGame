@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Omi.Backend.Tests/Omi.Backend.Tests.csproj" />
+  <Project Path="Omi.Backend/Omi.Backend.csproj" />
+</Solution>
