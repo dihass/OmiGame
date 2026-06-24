@@ -22,22 +22,45 @@ const DECOS = [
   { s: '♣', x: '42%', y: '5%',  sz: 30, r:  -3, o: 0.025 },
 ]
 
+const NAME_MIN     = 2
+const NAME_MAX     = 30
+const CODE_LENGTH  = 6
+const CODE_PATTERN = /^[A-Z0-9]{6}$/
+
 export default function LobbyScreen({ onJoin, error }: Props) {
   const [name,    setName]    = useState('')
   const [code,    setCode]    = useState('')
   const [mode,    setMode]    = useState<'create' | 'join'>('create')
   const [loading, setLoading] = useState(false)
+  const [touched, setTouched] = useState<{ name: boolean; code: boolean }>({ name: false, code: false })
   // Only auto-focus on non-touch devices to avoid immediately popping the keyboard on mobile
   const isTouch = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches
 
-  const canSubmit = name.trim().length > 0 && (mode === 'create' || code.trim().length >= 4)
+  const trimmedName = name.trim()
+  const trimmedCode = code.trim().toUpperCase()
+
+  const nameError =
+    trimmedName.length === 0           ? 'Enter your name.'
+  : trimmedName.length < NAME_MIN       ? `Name must be at least ${NAME_MIN} characters.`
+  : trimmedName.length > NAME_MAX       ? `Name must be ${NAME_MAX} characters or fewer.`
+  : null
+
+  const codeError = mode === 'join'
+    ? (trimmedCode.length === 0            ? 'Enter the lobby code.'
+    :  trimmedCode.length !== CODE_LENGTH  ? `Code must be exactly ${CODE_LENGTH} characters.`
+    :  !CODE_PATTERN.test(trimmedCode)     ? 'Code must be letters and numbers only.'
+    :  null)
+    : null
+
+  const canSubmit = !nameError && !codeError
 
   async function handle() {
+    setTouched({ name: true, code: true })
     if (!canSubmit || loading) return
-    const lobbyId = mode === 'create' ? randomLobbyId() : code.trim().toUpperCase()
+    const lobbyId = mode === 'create' ? randomLobbyId() : trimmedCode
     setLoading(true)
     try {
-      await onJoin(name.trim(), lobbyId, mode === 'create')
+      await onJoin(trimmedName, lobbyId, mode === 'create')
     } finally {
       setLoading(false)
     }
@@ -105,12 +128,18 @@ export default function LobbyScreen({ onJoin, error }: Props) {
                 className="omi-input"
                 placeholder="Enter your name"
                 value={name}
-                maxLength={30}
+                maxLength={NAME_MAX}
                 autoFocus={!isTouch}
                 autoComplete="off"
+                aria-invalid={touched.name && !!nameError}
                 onChange={e => setName(e.target.value)}
+                onBlur={() => setTouched(t => ({ ...t, name: true }))}
                 onKeyDown={e => e.key === 'Enter' && handle()}
+                style={touched.name && nameError ? { borderColor: 'rgba(239,68,68,0.55)' } : undefined}
               />
+              {touched.name && nameError && (
+                <p style={{ fontSize: 11, color: '#fca5a5', marginTop: 4 }}>{nameError}</p>
+              )}
             </div>
 
             {/* Create / Join toggle */}
@@ -152,12 +181,25 @@ export default function LobbyScreen({ onJoin, error }: Props) {
                     className="omi-input font-mono"
                     placeholder="XXXXXX"
                     value={code}
-                    maxLength={6}
+                    maxLength={CODE_LENGTH}
                     autoComplete="off"
-                    style={{ textTransform: 'uppercase', letterSpacing: '0.35em', fontWeight: 800, fontSize: 18 }}
-                    onChange={e => setCode(e.target.value.toUpperCase())}
+                    inputMode="text"
+                    aria-invalid={touched.code && !!codeError}
+                    style={{
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.35em',
+                      fontWeight: 800,
+                      fontSize: 18,
+                      ...(touched.code && codeError ? { borderColor: 'rgba(239,68,68,0.55)' } : {}),
+                    }}
+                    // Strip anything that isn't a letter or digit so paste / autofill can't sneak in junk
+                    onChange={e => setCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                    onBlur={() => setTouched(t => ({ ...t, code: true }))}
                     onKeyDown={e => e.key === 'Enter' && handle()}
                   />
+                  {touched.code && codeError && (
+                    <p style={{ fontSize: 11, color: '#fca5a5', marginTop: 4 }}>{codeError}</p>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

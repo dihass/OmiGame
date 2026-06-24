@@ -7,6 +7,7 @@ import type { TrickEntry } from '../../types/game'
 import CardView from './CardView'
 import Confetti from './Confetti'
 import PlayerSeat from './PlayerSeat'
+import RoundTricks from './RoundTricks'
 import ScoreHeader from './ScoreHeader'
 import { teamOf } from './teamConfig'
 import {
@@ -415,6 +416,15 @@ export default function GameTable({
                   />
                 )}
               </AnimatePresence>
+
+              {/* Live round trick counter — top-left of felt */}
+              {phase === 'Playing' && (
+                <RoundTricks
+                  teamA={session.teamATricksWon}
+                  teamB={session.teamBTricksWon}
+                  carriedPoints={session.carriedPoints}
+                />
+              )}
 
               {/* Persistent trump badge — bottom-left of felt */}
               <AnimatePresence>

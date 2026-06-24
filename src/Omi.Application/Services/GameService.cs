@@ -59,10 +59,16 @@ public sealed class GameService
         if (session.Players.Count >= 4)                       throw new GameException("Room is full.");
         if (session.Players.Any(p => p.PlayerId == playerId)) throw new GameException("Player already joined.");
 
+        // Names must be unique per lobby (case-insensitive, ignoring surrounding whitespace).
+        // Without this, two players named "Dihas" would be indistinguishable in the UI.
+        var normalized = displayName.Trim();
+        if (session.Players.Any(p => string.Equals(p.DisplayName.Trim(), normalized, StringComparison.OrdinalIgnoreCase)))
+            throw new GameException("That name is already taken in this lobby.");
+
         session.Players.Add(new Player
         {
             PlayerId    = playerId,
-            DisplayName = displayName,
+            DisplayName = normalized,
             SeatIndex   = session.Players.Count
         });
 
