@@ -1,0 +1,35 @@
+# Render.com Blueprint — Infrastructure as Code
+# Deploys the Omi backend as a Dockerized Web Service on the free tier.
+#
+# How to use:
+#   1. Push this file to GitHub
+#   2. On Render: New → Blueprint → Connect repo → Apply
+#   3. Set the marked secrets in the Render dashboard (sync: false means "not in git")
+services:
+  - type: web
+    name: omi-api
+    runtime: docker
+    plan: free
+    region: singapore           # Closest to Sri Lanka; change to oregon/frankfurt as needed
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true            # Re-deploys on push to main
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_HTTP_PORTS
+        value: "8080"
+      - key: Jwt__Issuer
+        value: omi-platform
+      - key: Jwt__Audience
+        value: omi-client
+      - key: Jwt__ExpiryHours
+        value: "4"
+
+      # ── Set these manually in Render dashboard after first deploy ──
+      - key: Jwt__SigningKey
+        sync: false             # generate with: openssl rand -base64 64
+      - key: ConnectionStrings__Redis
+        sync: false             # Upstash format: HOST:PORT,password=XXX,ssl=true,abortConnect=false
+      - key: Cors__AllowedOrigins__0
+        sync: false             # Your Vercel URL: https://omi.vercel.app

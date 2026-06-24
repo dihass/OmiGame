@@ -1,7 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as signalR from '@microsoft/signalr'
 import { SIGNALR_EVENTS } from '../constants/signalrEvents'
 import type { Card, GameSession } from '../types/game'
+import { wsUrl } from '../api/baseUrl'
+
+export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'disconnected'
 
 export interface SignalRHandlers {
   onLobbyUpdated:       (session: GameSession) => void
@@ -16,16 +19,17 @@ export interface SignalRHandlers {
   onLobbyNotFound:      () => void
 }
 
-export function useSignalR(jwt: string | null, handlers: SignalRHandlers) {
+export function useSignalR(jwt: string | null, handlers: SignalRHandlers): ConnectionState {
   const handlersRef = useRef(handlers)
   handlersRef.current = handlers
+  const [state, setState] = useState<ConnectionState>('idle')
 
   useEffect(() => {
-    if (!jwt) return
+    if (!jwt) { setState('idle'); return }
 
     const conn = new signalR.HubConnectionBuilder()
-      .withUrl('/ws/game', { accessTokenFactory: () => jwt })
-      .withAutomaticReconnect([0, 2000, 5000, 10000])
+      .withUrl(wsUrl('/ws/game'), { accessTokenFactory: () => jwt })
+      .withAutomaticReconnect([0, 2000, 5000, 10000, 20000])
       .configureLogging(signalR.LogLevel.Warning)
       .build()
 
@@ -40,8 +44,21 @@ export function useSignalR(jwt: string | null, handlers: SignalRHandlers) {
     conn.on(SIGNALR_EVENTS.LOBBY_CLOSED,        ()               => handlersRef.current.onLobbyClosed())
     conn.on(SIGNALR_EVENTS.LOBBY_NOT_FOUND,     ()               => handlersRef.current.onLobbyNotFound())
 
-    conn.start().catch(console.error)
+    conn.onreconnecting(() => setState('reconnecting'))
+    conn.onreconnected (() => setState('connected'))
+    // onclose fires after automatic-reconnect exhaustion, or on explicit stop()
+    conn.onclose       (() => setState('disconnected'))
 
-    return () => { conn.stop() }
+    setState('connecting')
+    conn.start()
+      .then(() => setState('connected'))
+      .catch(err => {
+        console.error('SignalR connection failed', err)
+        setState('disconnected')
+      })
+
+    return () => { void conn.stop() }
   }, [jwt])
+
+  return state
 }
