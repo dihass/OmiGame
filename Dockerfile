@@ -25,10 +25,10 @@ RUN dotnet publish "Omi.Api.csproj" -c Release -o /app/publish --no-restore
 # Final image — runtime only, no SDK
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
 
-# Drop to non-root user for least-privilege execution
-RUN adduser --disabled-password --gecos "" appuser && chown -R appuser /app
-USER appuser
+# .NET chiseled images ship a built-in non-root 'app' user (UID 1654).
+# --chown at COPY time avoids needing adduser/chmod (both absent in chiseled).
+COPY --from=publish --chown=app:app /app/publish .
+USER app
 
 ENTRYPOINT ["dotnet", "Omi.Api.dll"]
