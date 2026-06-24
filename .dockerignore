@@ -1,0 +1,11 @@
+**/.git
+**/.DS_Store
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/node_modules
+Omi.Client/dist
+.github
+*.md
+.claude

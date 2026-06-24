@@ -1,4 +1,7 @@
 <Solution>
-  <Project Path="Omi.Backend.Tests/Omi.Backend.Tests.csproj" />
-  <Project Path="Omi.Backend/Omi.Backend.csproj" />
+  <Project Path="src/Omi.Domain/Omi.Domain.csproj" />
+  <Project Path="src/Omi.Application/Omi.Application.csproj" />
+  <Project Path="src/Omi.Infrastructure/Omi.Infrastructure.csproj" />
+  <Project Path="src/Omi.Api/Omi.Api.csproj" />
+  <Project Path="tests/Omi.Domain.Tests/Omi.Domain.Tests.csproj" />
 </Solution>
