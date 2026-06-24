@@ -1,13 +1,14 @@
 import { useEffect, useRef } from 'react'
 import * as signalR from '@microsoft/signalr'
 import { SIGNALR_EVENTS } from '../constants/signalrEvents'
-import type { GameSession } from '../types/game'
+import type { Card, GameSession } from '../types/game'
 
 export interface SignalRHandlers {
   onLobbyUpdated:       (session: GameSession) => void
   onRoundStarted:       (session: GameSession) => void
   onTrumpSelected:      (session: GameSession) => void
   onCardPlayed:         (session: GameSession) => void
+  onHandDealt:          (hand: Card[]) => void
   onGameResumed:        (session: GameSession) => void
   onPlayerDisconnected: (playerId: string) => void
   onPlayerReconnected:  () => void
@@ -32,6 +33,7 @@ export function useSignalR(jwt: string | null, handlers: SignalRHandlers) {
     conn.on(SIGNALR_EVENTS.ROUND_STARTED,       (s: GameSession) => handlersRef.current.onRoundStarted(s))
     conn.on(SIGNALR_EVENTS.TRUMP_SELECTED,      (s: GameSession) => handlersRef.current.onTrumpSelected(s))
     conn.on(SIGNALR_EVENTS.CARD_PLAYED,         (s: GameSession) => handlersRef.current.onCardPlayed(s))
+    conn.on(SIGNALR_EVENTS.HAND_DEALT,          (h: Card[])      => handlersRef.current.onHandDealt(h))
     conn.on(SIGNALR_EVENTS.GAME_RESUMED,        (s: GameSession) => handlersRef.current.onGameResumed(s))
     conn.on(SIGNALR_EVENTS.PLAYER_DISCONNECTED, (pid: string)    => handlersRef.current.onPlayerDisconnected(pid))
     conn.on(SIGNALR_EVENTS.PLAYER_RECONNECTED,  ()               => handlersRef.current.onPlayerReconnected())

@@ -17,6 +17,7 @@ export default function App() {
   const [myLobbyId, setMyLobbyId]       = useState('')
   const [isLobbyCreator, setIsLobbyCreator] = useState(false)
   const [jwt, setJwt]                   = useState<string | null>(null)
+  const [myHand, setMyHand]                 = useState<Card[]>([])
   const [disconnectedId, setDisconnectedId] = useState<string | null>(null)
   const [lobbyClosed, setLobbyClosed]   = useState(false)
   const [lobbyError, setLobbyError]     = useState<string | null>(null)
@@ -29,6 +30,7 @@ export default function App() {
     onRoundStarted:       (s) => { if (s.roundHistory.length === 0) soundGameStart(); setSession(s); setView('game') },
     onTrumpSelected:      setSession,
     onCardPlayed:         setSession,
+    onHandDealt:          (hand) => setMyHand(hand),
     onGameResumed:        (s) => { setSession(s); setDisconnectedId(null); setView('game') },
     onPlayerDisconnected: (id) => { setDisconnectedId(id); soundAiyo() },
     onPlayerReconnected:  () => setDisconnectedId(null),
@@ -81,6 +83,8 @@ export default function App() {
   }
 
   async function handlePlayCard(card: Card) {
+    // Optimistic removal so the card disappears immediately on tap
+    setMyHand(h => h.filter(c => !(c.suit === card.suit && c.rank === card.rank)))
     try { setSession(await gameApi.playCard(myLobbyId, card, jwt!)) } catch { /* SignalR re-syncs */ }
   }
 
@@ -93,6 +97,7 @@ export default function App() {
     setLobbyClosed(false)
     setDisconnectedId(null)
     setStartError(null)
+    setMyHand([])
     setView('lobby')
   }
 
@@ -119,6 +124,7 @@ export default function App() {
   return (
     <GameTable
       session={session} myPlayerId={myPlayerId} isCreator={isLobbyCreator}
+      myHand={myHand}
       onPlayCard={handlePlayCard} onSetTrump={handleSetTrump} onStartRound={handleStartRound}
       disconnectedId={disconnectedId} lobbyClosed={lobbyClosed} onReturnToLobby={handleReturnToLobby}
     />

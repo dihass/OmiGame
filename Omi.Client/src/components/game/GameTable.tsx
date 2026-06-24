@@ -21,6 +21,7 @@ interface Props {
   session:         GameSession
   myPlayerId:      string
   isCreator:       boolean
+  myHand:          Card[]
   onPlayCard:      (card: Card) => Promise<void>
   onSetTrump:      (suit: Suit) => Promise<void>
   onStartRound:    () => Promise<void>
@@ -33,6 +34,7 @@ const SUITS: Suit[] = ['Hearts', 'Diamonds', 'Clubs', 'Spades']
 
 export default function GameTable({
   session, myPlayerId, isCreator,
+  myHand,
   onPlayCard, onSetTrump, onStartRound,
   disconnectedId, lobbyClosed, onReturnToLobby,
 }: Props) {
@@ -82,8 +84,6 @@ export default function GameTable({
     const prev = prevRef.current
     prevRef.current = session
     if (!prev) return
-
-    const myHand = me?.hand ?? []
 
     if (myHand.length > prevHandLen.current && myHand.length > 0) {
       setDealtHandKey(k => k + 1)
@@ -249,8 +249,7 @@ export default function GameTable({
     try { await onStartRound() } catch { /* SignalR will re-sync */ }
   }
 
-  const phase  = session.phase
-  const myHand = me?.hand ?? []
+  const phase = session.phase
 
   // Led suit — shown on the felt when the first card of a trick has been played
   const ledSuit = displayTrick.length > 0 ? displayTrick[0].card.suit : null
@@ -385,7 +384,7 @@ export default function GameTable({
         <div className="flex justify-center">
           <PlayerSeat player={playerAt(topSeat)} mySeat={mySeat} isMe={topSeat === mySeat}
             isCurrentTurn={session.currentTurnIndex === topSeat} isDealer={session.currentDealerIndex === topSeat}
-            cardCount={playerAt(topSeat)?.hand.length ?? 0} label="Top"
+            cardCount={playerAt(topSeat)?.handCount ?? 0} label="Top"
             disconnected={playerAt(topSeat)?.playerId === disconnectedId}
             countdown={slowWarning?.seat === topSeat ? slowWarning.secs : null} />
         </div>
@@ -395,7 +394,7 @@ export default function GameTable({
           <div className="flex justify-center" style={{ minWidth: 76 }}>
             <PlayerSeat player={playerAt(leftSeat)} mySeat={mySeat} isMe={leftSeat === mySeat}
               isCurrentTurn={session.currentTurnIndex === leftSeat} isDealer={session.currentDealerIndex === leftSeat}
-              cardCount={playerAt(leftSeat)?.hand.length ?? 0} label="Left"
+              cardCount={playerAt(leftSeat)?.handCount ?? 0} label="Left"
               disconnected={playerAt(leftSeat)?.playerId === disconnectedId}
               countdown={slowWarning?.seat === leftSeat ? slowWarning.secs : null} />
           </div>
@@ -635,7 +634,7 @@ export default function GameTable({
           <div className="flex justify-center" style={{ minWidth: 76 }}>
             <PlayerSeat player={playerAt(rightSeat)} mySeat={mySeat} isMe={rightSeat === mySeat}
               isCurrentTurn={session.currentTurnIndex === rightSeat} isDealer={session.currentDealerIndex === rightSeat}
-              cardCount={playerAt(rightSeat)?.hand.length ?? 0} label="Right"
+              cardCount={playerAt(rightSeat)?.handCount ?? 0} label="Right"
               disconnected={playerAt(rightSeat)?.playerId === disconnectedId}
               countdown={slowWarning?.seat === rightSeat ? slowWarning.secs : null} />
           </div>

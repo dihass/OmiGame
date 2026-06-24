@@ -25,7 +25,7 @@ export interface Player {
   seatIndex: number
   isDisconnected: boolean
   disconnectTimestamp: string | null
-  hand: Card[]
+  handCount: number
 }
 
 export interface RoundResult {
