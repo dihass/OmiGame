@@ -527,107 +527,144 @@ export default function GameTable({
 
             {/* ── Trick result overlay ─────────────────────────────────────── */}
             <AnimatePresence>
-              {trickResult && (
-                <motion.div
-                  className="absolute inset-0 rounded-3xl flex items-center justify-center z-20 pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  style={{ background: 'rgba(0,7,3,0.80)' }}
-                >
+              {trickResult && (() => {
+                const winnerTeam   = trickResult.winnerSeat % 2 === 0 ? 'A' : 'B'
+                const teamColor    = winnerTeam === 'A' ? '#ef4444' : '#9ca3af'
+                const teamGlow     = winnerTeam === 'A' ? 'rgba(239,68,68,0.22)' : 'rgba(107,114,128,0.18)'
+                const teamBorder   = winnerTeam === 'A' ? 'rgba(239,68,68,0.55)' : 'rgba(107,114,128,0.45)'
+                const teamBg       = winnerTeam === 'A' ? '#7f1d1d' : '#1f2937'
+                return (
                   <motion.div
-                    initial={{ scale: 0.55, y: 24, opacity: 0 }}
-                    animate={{ scale: 1,    y: 0,  opacity: 1 }}
-                    exit={  { scale: 0.80,  y: -20, opacity: 0 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30, delay: 0.28 }}
-                    className="rounded-2xl px-6 py-5 text-center"
-                    style={{
-                      background: 'rgba(0,12,6,0.98)',
-                      border: `1.5px solid ${trickResult.isMyTeam ? 'rgba(245,158,11,0.60)' : 'rgba(90,90,90,0.40)'}`,
-                      boxShadow: trickResult.isMyTeam
-                        ? '0 0 44px rgba(245,158,11,0.18), 0 8px 32px rgba(0,0,0,0.72)'
-                        : '0 8px 32px rgba(0,0,0,0.72)',
-                      minWidth: 178,
-                    }}
+                    className="absolute inset-0 rounded-3xl flex items-center justify-center z-20 pointer-events-none"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    style={{ background: 'rgba(0,7,3,0.82)' }}
                   >
-                    {/* Winner avatar */}
                     <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 600, damping: 26, delay: 0.38 }}
-                      className="w-14 h-14 rounded-full mx-auto mb-3 flex items-center justify-center font-black"
+                      initial={{ scale: 0.55, y: 24, opacity: 0 }}
+                      animate={{ scale: 1,    y: 0,  opacity: 1 }}
+                      exit={  { scale: 0.80,  y: -20, opacity: 0 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30, delay: 0.22 }}
+                      className="rounded-2xl px-6 py-5 text-center"
                       style={{
-                        fontSize: 20,
-                        background: trickResult.winnerSeat % 2 === 0 ? '#7f1d1d' : '#1f2937',
-                        border: `2.5px solid ${trickResult.isMyTeam ? '#f59e0b' : '#374151'}`,
-                        color: '#f0f0f0',
-                        boxShadow: trickResult.isMyTeam ? '0 0 18px rgba(245,158,11,0.35)' : 'none',
-                        letterSpacing: '-0.03em',
+                        background: 'rgba(0,12,6,0.98)',
+                        border: `1.5px solid ${teamBorder}`,
+                        boxShadow: `0 0 48px ${teamGlow}, 0 8px 32px rgba(0,0,0,0.72)`,
+                        minWidth: 200,
                       }}
                     >
-                      {trickResult.winnerName.slice(0, 2).toUpperCase()}
-                    </motion.div>
-
-                    {/* Winner text */}
-                    <p className="font-black leading-none mb-1"
-                      style={{ fontSize: 17, color: trickResult.isMyTeam ? '#f59e0b' : '#d0d0d0' }}>
-                      {trickResult.isMe ? 'You win!' : `${trickResult.winnerName} wins!`}
-                    </p>
-                    <p style={{ fontSize: 9.5, color: '#3d7055', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 14 }}>
-                      {trickResult.isMyTeam ? 'your team takes the trick' : 'their team takes the trick'}
-                    </p>
-
-                    {/* 8 trick progress dots */}
-                    <div className="flex items-center justify-center gap-1.5 mb-4">
-                      {Array.from({ length: 8 }).map((_, i) => {
-                        const isA      = i < trickResult.teamATricks
-                        const isB      = i >= trickResult.teamATricks && i < trickResult.teamATricks + trickResult.teamBTricks
-                        const myDot    = (myTeam === 'A' && isA) || (myTeam === 'B' && isB)
-                        return (
-                          <motion.div
-                            key={i}
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: 'spring', stiffness: 600, delay: 0.42 + i * 0.04 }}
-                            style={{
-                              width: 9, height: 9, borderRadius: '50%',
-                              background: isA ? '#ef4444' : isB ? '#6b7280' : 'rgba(0,50,20,0.55)',
-                              boxShadow: myDot ? '0 0 8px rgba(245,158,11,0.50)' : 'none',
-                            }}
-                          />
-                        )
-                      })}
-                    </div>
-
-                    {/* Next player pill */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.58 }}
-                      className="rounded-xl px-3 py-2 flex items-center justify-center gap-1.5"
-                      style={{
-                        background: trickResult.isMe ? 'rgba(13,207,177,0.12)' : 'rgba(0,28,12,0.55)',
-                        border: `1px solid ${trickResult.isMe ? 'rgba(13,207,177,0.40)' : 'rgba(0,70,30,0.40)'}`,
-                      }}
-                    >
-                      <motion.span
-                        animate={trickResult.isMe ? { x: [0, 3, 0] } : {}}
-                        transition={{ duration: 0.6, delay: 0.7, repeat: 2 }}
-                        style={{ fontSize: 11 }}
+                      {/* Team banner — the most prominent thing, seen by everyone */}
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.25 }}
+                        className="rounded-lg px-4 py-1.5 mb-3 mx-auto inline-block"
+                        style={{ background: winnerTeam === 'A' ? 'rgba(127,29,29,0.55)' : 'rgba(55,65,81,0.55)', border: `1px solid ${teamBorder}` }}
                       >
-                        ▶
-                      </motion.span>
-                      <span style={{
-                        fontSize: 12, fontWeight: 700,
-                        color: trickResult.isMe ? '#0dcfb1' : '#b0c8bb',
-                      }}>
-                        {trickResult.isMe ? 'Your turn next!' : `${trickResult.winnerName} leads next`}
-                      </span>
+                        <span style={{ fontSize: 13, fontWeight: 900, color: teamColor, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                          Team {winnerTeam} takes it
+                        </span>
+                      </motion.div>
+
+                      {/* Winner avatar + name */}
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 600, damping: 26, delay: 0.35 }}
+                        className="w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center font-black"
+                        style={{
+                          fontSize: 20,
+                          background: teamBg,
+                          border: `2.5px solid ${teamColor}`,
+                          color: '#f0f0f0',
+                          boxShadow: `0 0 18px ${teamGlow}`,
+                          letterSpacing: '-0.03em',
+                        }}
+                      >
+                        {trickResult.winnerName.slice(0, 2).toUpperCase()}
+                      </motion.div>
+
+                      <p className="font-black leading-none mb-1"
+                        style={{ fontSize: 16, color: teamColor }}>
+                        {trickResult.isMe ? 'You win this trick!' : `${trickResult.winnerName} wins!`}
+                      </p>
+                      <p style={{ fontSize: 9.5, color: '#3d7055', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 14 }}>
+                        {trickResult.isMyTeam ? '✦ your team ✦' : 'opponent team'}
+                      </p>
+
+                      {/* Trick tally — labelled A vs B so everyone can read it */}
+                      <div className="flex items-center justify-center gap-3 mb-4">
+                        <div className="text-center">
+                          <div style={{ fontSize: 9, fontWeight: 700, color: '#7f1d1d', letterSpacing: '0.1em', marginBottom: 3 }}>TEAM A</div>
+                          <div className="flex gap-[4px]">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: 'spring', stiffness: 600, delay: 0.40 + i * 0.035 }}
+                                style={{
+                                  width: 10, height: 10, borderRadius: 2,
+                                  background: i < trickResult.teamATricks ? '#ef4444' : 'rgba(0,50,20,0.45)',
+                                  boxShadow: i < trickResult.teamATricks ? '0 0 6px rgba(239,68,68,0.50)' : 'none',
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <div style={{ fontSize: 18, fontWeight: 900, color: '#f87171', marginTop: 4 }}>{trickResult.teamATricks}</div>
+                        </div>
+
+                        <div style={{ fontSize: 12, color: '#2e5a40', fontWeight: 700, alignSelf: 'center' }}>vs</div>
+
+                        <div className="text-center">
+                          <div style={{ fontSize: 9, fontWeight: 700, color: '#374151', letterSpacing: '0.1em', marginBottom: 3 }}>TEAM B</div>
+                          <div className="flex gap-[4px]">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                              <motion.div
+                                key={i}
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: 'spring', stiffness: 600, delay: 0.40 + i * 0.035 }}
+                                style={{
+                                  width: 10, height: 10, borderRadius: 2,
+                                  background: i < trickResult.teamBTricks ? '#6b7280' : 'rgba(0,50,20,0.45)',
+                                  boxShadow: i < trickResult.teamBTricks ? '0 0 6px rgba(107,114,128,0.45)' : 'none',
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <div style={{ fontSize: 18, fontWeight: 900, color: '#9ca3af', marginTop: 4 }}>{trickResult.teamBTricks}</div>
+                        </div>
+                      </div>
+
+                      {/* Next player pill */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.55 }}
+                        className="rounded-xl px-3 py-2 flex items-center justify-center gap-1.5"
+                        style={{
+                          background: trickResult.isMe ? 'rgba(13,207,177,0.12)' : 'rgba(0,28,12,0.55)',
+                          border: `1px solid ${trickResult.isMe ? 'rgba(13,207,177,0.40)' : 'rgba(0,70,30,0.40)'}`,
+                        }}
+                      >
+                        <motion.span
+                          animate={trickResult.isMe ? { x: [0, 3, 0] } : {}}
+                          transition={{ duration: 0.6, delay: 0.7, repeat: 2 }}
+                          style={{ fontSize: 11 }}
+                        >
+                          ▶
+                        </motion.span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: trickResult.isMe ? '#0dcfb1' : '#b0c8bb' }}>
+                          {trickResult.isMe ? 'Your turn next!' : `${trickResult.winnerName} leads next`}
+                        </span>
+                      </motion.div>
                     </motion.div>
                   </motion.div>
-                </motion.div>
-              )}
+                )
+              })()}
             </AnimatePresence>
           </div>
 
