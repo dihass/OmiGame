@@ -130,14 +130,14 @@ export default function ScoreHeader({ session, phase }: Props) {
     <div className="sticky top-0 z-30" style={{ background: 'rgba(0,10,4,0.96)', borderBottom: '1px solid rgba(0,80,30,0.25)', backdropFilter: 'blur(10px)' }}>
 
       {/* ── Main score row ────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between px-3 h-14 gap-2">
+      <div className="flex items-center justify-between px-3 py-2 gap-2">
 
         {/* Team A */}
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#ef4444', boxShadow: '0 0 5px rgba(239,68,68,0.7)' }} />
           <div className="min-w-0">
             <div style={{ fontSize: 9, fontWeight: 700, color: '#7f1d1d', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Team A</div>
-            <div className="truncate" style={{ fontSize: 10, color: '#2e5a40', maxWidth: 80 }}>{teamANames.join(' & ') || '—'}</div>
+            <div className="truncate" style={{ fontSize: 10, color: '#2e5a40', maxWidth: 'clamp(50px, 14vw, 80px)' }}>{teamANames.join(' & ') || '—'}</div>
           </div>
           <div className="flex items-baseline gap-0.5 flex-shrink-0">
             <ScorePill value={session.teamAMatchPoints} team="A" />
@@ -183,7 +183,7 @@ export default function ScoreHeader({ session, phase }: Props) {
                     initial={{ scale: 1.7, opacity: 0, y: -4 }}
                     animate={{ scale: 1,   opacity: 1, y: 0 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 24 }}
-                    style={{ fontSize: 24, fontWeight: 900, lineHeight: 1, color: '#f87171', display: 'block', textAlign: 'center' }}
+                    style={{ fontSize: 20, fontWeight: 900, lineHeight: 1, color: '#f87171', display: 'block', textAlign: 'center' }}
                   >
                     {session.teamATricksWon}
                   </motion.span>
@@ -202,7 +202,7 @@ export default function ScoreHeader({ session, phase }: Props) {
                     initial={{ scale: 1.7, opacity: 0, y: -4 }}
                     animate={{ scale: 1,   opacity: 1, y: 0 }}
                     transition={{ type: 'spring', stiffness: 500, damping: 24 }}
-                    style={{ fontSize: 24, fontWeight: 900, lineHeight: 1, color: '#9ca3af', display: 'block', textAlign: 'center' }}
+                    style={{ fontSize: 20, fontWeight: 900, lineHeight: 1, color: '#9ca3af', display: 'block', textAlign: 'center' }}
                   >
                     {session.teamBTricksWon}
                   </motion.span>
@@ -247,7 +247,7 @@ export default function ScoreHeader({ session, phase }: Props) {
           </div>
           <div className="min-w-0 text-right">
             <div style={{ fontSize: 9, fontWeight: 700, color: '#374151', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Team B</div>
-            <div className="truncate" style={{ fontSize: 10, color: '#2e5a40', maxWidth: 80 }}>{teamBNames.join(' & ') || '—'}</div>
+            <div className="truncate" style={{ fontSize: 10, color: '#2e5a40', maxWidth: 'clamp(50px, 14vw, 80px)' }}>{teamBNames.join(' & ') || '—'}</div>
           </div>
           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#6b7280', boxShadow: '0 0 5px rgba(107,114,128,0.50)' }} />
         </div>

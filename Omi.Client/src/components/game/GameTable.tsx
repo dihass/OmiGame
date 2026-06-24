@@ -267,7 +267,7 @@ export default function GameTable({
 
   return (
     <motion.div
-      className="min-h-screen flex flex-col bg-transparent relative"
+      className="min-h-dvh flex flex-col bg-transparent relative overflow-x-hidden"
       animate={screenEffect === 'shake' ? { x: [-12, 12, -10, 10, -6, 6, -2, 0] } : { x: 0 }}
       transition={{ duration: 0.5 }}
     >
@@ -321,7 +321,7 @@ export default function GameTable({
               animate={{ scale: 1, rotate: 0, opacity: 1 }}
               exit={{ scale: 1.6, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-              className="rounded-3xl px-14 py-10 text-center shadow-2xl"
+              className="rounded-3xl px-8 py-10 text-center shadow-2xl w-full max-w-xs mx-4"
               style={{ background: '#00120a', border: '4px solid #f59e0b', boxShadow: '0 0 60px rgba(245,158,11,0.25)' }}
             >
               <p className="text-yellow-400 font-black text-sm uppercase tracking-[0.3em] mb-3">Trump Suit</p>
@@ -378,7 +378,7 @@ export default function GameTable({
       <ScoreHeader session={session} phase={phase} />
 
       {/* ── Table ─────────────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-between px-3 py-4 gap-3 max-w-2xl mx-auto w-full">
+      <div className="flex-1 flex flex-col items-center justify-between px-2 py-3 gap-2 max-w-2xl mx-auto w-full">
 
         {/* Top */}
         <div className="flex justify-center">
@@ -390,8 +390,8 @@ export default function GameTable({
         </div>
 
         {/* Middle row */}
-        <div className="flex items-center gap-3 w-full">
-          <div className="flex justify-center" style={{ minWidth: 76 }}>
+        <div className="flex items-center gap-2 w-full">
+          <div className="flex justify-center flex-shrink-0" style={{ width: 'clamp(52px, 15vw, 76px)' }}>
             <PlayerSeat player={playerAt(leftSeat)} mySeat={mySeat} isMe={leftSeat === mySeat}
               isCurrentTurn={session.currentTurnIndex === leftSeat} isDealer={session.currentDealerIndex === leftSeat}
               cardCount={playerAt(leftSeat)?.handCount ?? 0} label="Left"
@@ -400,8 +400,8 @@ export default function GameTable({
           </div>
 
           {/* Felt table */}
-          <div className="flex-1 relative">
-            <div className="felt-table rounded-3xl flex items-center justify-center relative overflow-hidden" style={{ minHeight: 'clamp(220px, 38vw, 340px)' }}>
+          <div className="flex-1 relative min-w-0">
+            <div className="felt-table rounded-3xl flex items-center justify-center relative overflow-hidden" style={{ minHeight: 'clamp(190px, 42vw, 340px)' }}>
               {/* Trick flash overlay */}
               <AnimatePresence>
                 {trickFlash !== 'none' && (
@@ -500,10 +500,10 @@ export default function GameTable({
                               </div>
                             )}
 
-                            <CardView card={tCard} size="md" />
+                            <CardView card={tCard} size="sm" />
                           </motion.div>
                         ) : (
-                          <div className="w-14 h-20 rounded-lg border border-dashed border-green-900/30" />
+                          <div className="w-10 h-14 rounded-lg border border-dashed border-green-900/30" />
                         )}
                       </AnimatePresence>
                     </div>
@@ -514,15 +514,22 @@ export default function GameTable({
 
             {/* Last trick button */}
             {lastTrick && phase === 'Playing' && !trickResult && (
-              <button
+              <motion.button
                 onClick={() => setShowLastTrick(true)}
-                className="absolute bottom-2 right-3 text-[10px] font-semibold px-2 py-1 rounded-lg transition-colors"
-                style={{ color: '#3d7055', background: 'rgba(0,10,5,0.75)', border: '1px solid rgba(0,70,30,0.40)' }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#0dcfb1'; e.currentTarget.style.borderColor = 'rgba(13,207,177,0.35)' }}
-                onMouseLeave={e => { e.currentTarget.style.color = '#3d7055'; e.currentTarget.style.borderColor = 'rgba(0,70,30,0.40)' }}
+                whileHover={{ color: '#0dcfb1', borderColor: 'rgba(13,207,177,0.45)' }}
+                whileTap={{ scale: 0.94 }}
+                className="absolute bottom-2 right-2 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg"
+                style={{
+                  color: '#3d7055',
+                  background: 'rgba(0,10,5,0.80)',
+                  border: '1px solid rgba(0,70,30,0.40)',
+                  touchAction: 'manipulation',
+                  WebkitTapHighlightColor: 'transparent',
+                  minHeight: 32,
+                }}
               >
                 Last trick ↗
-              </button>
+              </motion.button>
             )}
 
             {/* ── Trick result overlay ─────────────────────────────────────── */}
@@ -668,7 +675,7 @@ export default function GameTable({
             </AnimatePresence>
           </div>
 
-          <div className="flex justify-center" style={{ minWidth: 76 }}>
+          <div className="flex justify-center flex-shrink-0" style={{ width: 'clamp(52px, 15vw, 76px)' }}>
             <PlayerSeat player={playerAt(rightSeat)} mySeat={mySeat} isMe={rightSeat === mySeat}
               isCurrentTurn={session.currentTurnIndex === rightSeat} isDealer={session.currentDealerIndex === rightSeat}
               cardCount={playerAt(rightSeat)?.handCount ?? 0} label="Right"
@@ -783,13 +790,13 @@ export default function GameTable({
             )}
           </AnimatePresence>
 
-          {/* My hand */}
+          {/* My hand — horizontal scroll on mobile, no wrap */}
           {me && myHand.length > 0 && (phase === 'Playing' || phase === 'TrumpSelection' || phase === 'DealingPhase2') && (
             <motion.div
               key={dealtHandKey}
               animate={illegalShake ? { x: [-10, 10, -8, 8, -4, 4, 0] } : { x: 0 }}
               transition={{ duration: 0.4 }}
-              className="flex flex-wrap justify-center gap-1.5 p-2.5 rounded-2xl border transition-all duration-300"
+              className="hand-scroll w-full rounded-2xl border transition-all duration-300"
               style={{
                 borderColor: illegalShake
                   ? 'rgba(239,68,68,0.55)'
@@ -806,19 +813,23 @@ export default function GameTable({
                   : 'none',
               }}
             >
-              {myHand.map((card, i) => {
-                const legal = isLegalPlay(card, myHand, session.currentTrick)
-                return (
-                  <motion.div key={cardKey(card)}
-                    initial={{ opacity: 0, y: 24, rotateZ: i % 2 === 0 ? -4 : 4 }}
-                    animate={{ opacity: 1, y: 0, rotateZ: 0 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 28, delay: i * 0.035 }}>
-                    <CardView card={card}
-                      onClick={isMyTurn && legal ? () => handlePlayCard(card) : undefined}
-                      disabled={!isMyTurn} illegal={isMyTurn && !legal} highlight={isMyTurn && legal} size="md" />
-                  </motion.div>
-                )
-              })}
+              {/* Inner flex — nowrap so cards never wrap to a second row */}
+              <div className="flex flex-nowrap items-end justify-center gap-1.5 px-2.5 py-2.5"
+                style={{ minWidth: 'max-content', margin: '0 auto' }}>
+                {myHand.map((card, i) => {
+                  const legal = isLegalPlay(card, myHand, session.currentTrick)
+                  return (
+                    <motion.div key={cardKey(card)}
+                      initial={{ opacity: 0, y: 24, rotateZ: i % 2 === 0 ? -4 : 4 }}
+                      animate={{ opacity: 1, y: 0, rotateZ: 0 }}
+                      transition={{ type: 'spring', stiffness: 400, damping: 28, delay: i * 0.035 }}>
+                      <CardView card={card}
+                        onClick={isMyTurn && legal ? () => handlePlayCard(card) : undefined}
+                        disabled={!isMyTurn} illegal={isMyTurn && !legal} highlight={isMyTurn && legal} size="md" />
+                    </motion.div>
+                  )
+                })}
+              </div>
             </motion.div>
           )}
 

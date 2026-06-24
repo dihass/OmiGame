@@ -45,7 +45,7 @@ export default function CardView({
       whileHover={canClick ? { y: -14, scale: 1.06 } : {}}
       whileTap={canClick ? { scale: 0.93 } : {}}
       transition={{ type: 'spring', stiffness: 400, damping: 26 }}
-      style={{ cursor: canClick ? 'pointer' : 'default' }}
+      style={{ cursor: canClick ? 'pointer' : 'default', touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
       className={[
         s.card,
         'rounded-lg border select-none card-face relative overflow-hidden',

@@ -27,6 +27,8 @@ export default function LobbyScreen({ onJoin, error }: Props) {
   const [code,    setCode]    = useState('')
   const [mode,    setMode]    = useState<'create' | 'join'>('create')
   const [loading, setLoading] = useState(false)
+  // Only auto-focus on non-touch devices to avoid immediately popping the keyboard on mobile
+  const isTouch = typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches
 
   const canSubmit = name.trim().length > 0 && (mode === 'create' || code.trim().length >= 4)
 
@@ -104,7 +106,7 @@ export default function LobbyScreen({ onJoin, error }: Props) {
                 placeholder="Enter your name"
                 value={name}
                 maxLength={30}
-                autoFocus
+                autoFocus={!isTouch}
                 autoComplete="off"
                 onChange={e => setName(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handle()}
@@ -122,6 +124,9 @@ export default function LobbyScreen({ onJoin, error }: Props) {
                   style={{
                     background: mode === m ? '#d4a017' : 'transparent',
                     color:      mode === m ? '#000a04' : '#2e5a40',
+                    touchAction: 'manipulation',
+                    WebkitTapHighlightColor: 'transparent',
+                    minHeight: 44,
                   }}
                 >
                   {m === 'create' ? 'Create Game' : 'Join Game'}
