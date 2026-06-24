@@ -146,7 +146,9 @@ export default function ScoreHeader({ session, phase }: Props) {
         </div>
 
         {/* Centre */}
-        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+        <div className="flex flex-col items-center gap-0.5 flex-shrink-0">
+
+          {/* Trump pill */}
           <AnimatePresence mode="wait">
             {session.trumpSuit ? (
               <motion.div
@@ -159,18 +161,58 @@ export default function ScoreHeader({ session, phase }: Props) {
                 style={{ background: 'rgba(100,50,0,0.45)', border: '1px solid rgba(245,158,11,0.40)' }}
               >
                 <span style={{ fontSize: 9, fontWeight: 700, color: '#92650a', letterSpacing: '0.1em', textTransform: 'uppercase' }}>trump</span>
-                <span className="font-black leading-none" style={{ fontSize: 16, color: isRedSuit(session.trumpSuit) ? '#f87171' : '#e5e7eb' }}>
+                <span className="font-black leading-none" style={{ fontSize: 15, color: isRedSuit(session.trumpSuit) ? '#f87171' : '#e5e7eb' }}>
                   {SUIT_SYMBOL[session.trumpSuit]}
                 </span>
               </motion.div>
             ) : (
-              <div style={{ fontSize: 9.5, color: '#1e3028', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
+              <div style={{ fontSize: 9, color: '#1e3028', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
                 {phase.replace(/([A-Z])/g, ' $1').trim()}
               </div>
             )}
           </AnimatePresence>
 
-          {/* Trick dots */}
+          {/* Live round trick score — big and clear */}
+          {isPlaying && (
+            <div className="flex items-center gap-1.5">
+              {/* Team A count */}
+              <div className="flex flex-col items-center" style={{ minWidth: 28 }}>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={session.teamATricksWon}
+                    initial={{ scale: 1.7, opacity: 0, y: -4 }}
+                    animate={{ scale: 1,   opacity: 1, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 24 }}
+                    style={{ fontSize: 24, fontWeight: 900, lineHeight: 1, color: '#f87171', display: 'block', textAlign: 'center' }}
+                  >
+                    {session.teamATricksWon}
+                  </motion.span>
+                </AnimatePresence>
+                <span style={{ fontSize: 8, fontWeight: 700, color: '#7f1d1d', letterSpacing: '0.1em' }}>A</span>
+              </div>
+
+              {/* Divider */}
+              <span style={{ fontSize: 13, color: '#2e5a40', fontWeight: 700, lineHeight: 1, paddingBottom: 10 }}>–</span>
+
+              {/* Team B count */}
+              <div className="flex flex-col items-center" style={{ minWidth: 28 }}>
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={session.teamBTricksWon}
+                    initial={{ scale: 1.7, opacity: 0, y: -4 }}
+                    animate={{ scale: 1,   opacity: 1, y: 0 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 24 }}
+                    style={{ fontSize: 24, fontWeight: 900, lineHeight: 1, color: '#9ca3af', display: 'block', textAlign: 'center' }}
+                  >
+                    {session.teamBTricksWon}
+                  </motion.span>
+                </AnimatePresence>
+                <span style={{ fontSize: 8, fontWeight: 700, color: '#374151', letterSpacing: '0.1em' }}>B</span>
+              </div>
+            </div>
+          )}
+
+          {/* Trick squares — visual breakdown */}
           {isPlaying && (
             <div className="flex items-center gap-[3px]">
               {Array.from({ length: 8 }).map((_, i) => {
@@ -179,12 +221,11 @@ export default function ScoreHeader({ session, phase }: Props) {
                 return (
                   <motion.div
                     key={i}
-                    animate={isA || isB ? { scale: [1.4, 1] } : {}}
+                    animate={isA || isB ? { scale: [1.5, 1] } : {}}
                     transition={{ type: 'spring', stiffness: 500 }}
-                    className="rounded-full"
                     style={{
-                      width: 7, height: 7,
-                      background: isA ? '#ef4444' : isB ? '#6b7280' : 'rgba(0,50,20,0.60)',
+                      width: 7, height: 7, borderRadius: 2,
+                      background: isA ? '#ef4444' : isB ? '#6b7280' : 'rgba(0,50,20,0.55)',
                       boxShadow: isA ? '0 0 4px rgba(239,68,68,0.55)' : isB ? '0 0 4px rgba(107,114,128,0.40)' : 'none',
                     }}
                   />
