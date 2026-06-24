@@ -36,6 +36,11 @@ if (string.IsNullOrWhiteSpace(jwtOpts.SigningKey) || jwtOpts.SigningKey.Length <
 
 var corsOpts = builder.Configuration.GetSection(CorsOptions.Section).Get<CorsOptions>() ?? new CorsOptions();
 
+// TEMP DIAGNOSTIC — remove once CORS confirmed working
+Console.WriteLine($"[CORS-DEBUG] Loaded {corsOpts.AllowedOrigins.Length} allowed origin(s):");
+for (int i = 0; i < corsOpts.AllowedOrigins.Length; i++)
+    Console.WriteLine($"[CORS-DEBUG]   [{i}] '{corsOpts.AllowedOrigins[i]}' (len={corsOpts.AllowedOrigins[i].Length})");
+
 // ── Forwarded headers (trust Azure / load-balancer proxy) ─────────────────────
 builder.Services.Configure<ForwardedHeadersOptions>(o =>
 {
