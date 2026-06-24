@@ -84,7 +84,7 @@ export default function LobbyScreen({ onJoin, error }: Props) {
             </h1>
             <span style={{ fontSize: 20, color: 'rgba(200,200,200,0.22)', lineHeight: 1 }}>♠</span>
           </div>
-          <p style={{ fontSize: 10.5, letterSpacing: '0.38em', color: '#2e5a40', fontWeight: 600, textTransform: 'uppercase' }}>
+          <p style={{ fontSize: 12, letterSpacing: '0.30em', color: '#3d7055', fontWeight: 600, textTransform: 'uppercase' }}>
             Sri Lankan Card Game
           </p>
         </div>
@@ -98,7 +98,7 @@ export default function LobbyScreen({ onJoin, error }: Props) {
             {/* Name field */}
             <div className="mb-5">
               <label className="block mb-1.5"
-                style={{ fontSize: 10.5, fontWeight: 700, color: '#2e5a40', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                style={{ fontSize: 12, fontWeight: 700, color: '#3d7055', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                 Your Name
               </label>
               <input
@@ -145,7 +145,7 @@ export default function LobbyScreen({ onJoin, error }: Props) {
                   style={{ overflow: 'hidden' }}
                 >
                   <label className="block mb-1.5"
-                    style={{ fontSize: 10.5, fontWeight: 700, color: '#2e5a40', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                    style={{ fontSize: 12, fontWeight: 700, color: '#3d7055', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
                     Lobby Code
                   </label>
                   <input
@@ -199,7 +199,7 @@ export default function LobbyScreen({ onJoin, error }: Props) {
 
           {/* Hint footer */}
           <div className="px-6 pb-5 text-center">
-            <p style={{ fontSize: 11, color: '#1e4028' }}>
+            <p style={{ fontSize: 12, color: '#3d7055' }}>
               {mode === 'create'
                 ? 'Share the code with 3 friends to play'
                 : 'Ask the host for the 6-character code'}

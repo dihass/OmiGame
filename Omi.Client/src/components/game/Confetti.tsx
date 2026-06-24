@@ -27,6 +27,10 @@ export default function Confetti({ intensity = 'full', onDone }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      onDone?.()
+      return
+    }
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx2d = canvas.getContext('2d')!

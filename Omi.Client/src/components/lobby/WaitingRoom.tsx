@@ -59,7 +59,7 @@ export default function WaitingRoom({
             <h2 className="font-display font-bold text-xl tracking-wide" style={{ color: '#d4a017' }}>
               Waiting Room
             </h2>
-            <p style={{ color: '#2e5a40', fontSize: 12, marginTop: 2 }}>
+            <p style={{ color: '#3d7055', fontSize: 13, marginTop: 2 }}>
               {isFull ? 'All players are here!' : `Waiting for ${4 - session.players.length} more…`}
             </p>
           </div>
@@ -67,7 +67,7 @@ export default function WaitingRoom({
           {/* Lobby code */}
           <div className="flex items-center gap-2">
             <div>
-              <p style={{ fontSize: 9.5, color: '#2e5a40', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', textAlign: 'right', marginBottom: 2 }}>
+              <p style={{ fontSize: 11, color: '#3d7055', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', textAlign: 'right', marginBottom: 2 }}>
                 Code
               </p>
               <p className="font-mono font-black tracking-[0.25em]" style={{ fontSize: 20, color: '#f59e0b', lineHeight: 1 }}>
@@ -81,7 +81,10 @@ export default function WaitingRoom({
               style={{
                 background: copied ? 'rgba(13,207,177,0.15)' : 'rgba(0,60,25,0.40)',
                 border:     `1px solid ${copied ? '#0dcfb1' : '#1a4a2e'}`,
-                color:      copied ? '#0dcfb1' : '#2e5a40',
+                color:      copied ? '#0dcfb1' : '#3d7055',
+                minHeight:  44,
+                touchAction: 'manipulation',
+                WebkitTapHighlightColor: 'transparent',
               }}
             >
               {copied ? '✓' : 'Copy'}
@@ -91,7 +94,7 @@ export default function WaitingRoom({
 
         {/* Visual table */}
         <div className="flex justify-center mb-8">
-          <div className="relative" style={{ width: 180, height: 140 }}>
+          <div className="relative" style={{ width: 'clamp(180px, 50vw, 240px)', height: 'clamp(140px, 40vw, 190px)' }}>
             {/* Felt surface */}
             <div className="absolute felt-table rounded-2xl" style={{ inset: 24 }} />
 
@@ -133,9 +136,9 @@ export default function WaitingRoom({
                           : isTeamA ? '#7f1d1d' : '#374151',
                         borderStyle:  isEmpty ? 'dashed' : 'solid',
                         borderColor:  isEmpty
-                          ? '#1a4a2e'
+                          ? 'rgba(0,120,55,0.50)'
                           : isTeamA ? '#b91c1c' : '#4b5563',
-                        color: isEmpty ? '#1a4a2e' : '#f0f0f0',
+                        color: isEmpty ? '#3d7055' : '#f0f0f0',
                         opacity: isEmpty ? 0.45 : 1,
                         boxShadow: isMe
                           ? '0 0 0 2px rgba(13,207,177,0.6)'
@@ -145,9 +148,9 @@ export default function WaitingRoom({
                       {player ? player.displayName[0].toUpperCase() : '?'}
                     </div>
                     <span style={{
-                      fontSize: 9,
+                      fontSize: 11,
                       fontWeight: 700,
-                      color: isMe ? '#0dcfb1' : isEmpty ? '#1a3020' : '#2e5a40',
+                      color: isMe ? '#0dcfb1' : isEmpty ? '#3d7055' : '#4a8a62',
                       letterSpacing: '0.05em',
                       whiteSpace: 'nowrap',
                     }}>
@@ -167,8 +170,8 @@ export default function WaitingRoom({
           {/* Team headers */}
           <div className="grid grid-cols-2 text-center py-2 px-4"
             style={{ borderBottom: '1px solid #183d26' }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#b91c1c', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Team A · Seats 0 & 2</span>
-            <span style={{ fontSize: 10, fontWeight: 700, color: '#4b5563', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Team B · Seats 1 & 3</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#c92a2a', letterSpacing: '0.10em', textTransform: 'uppercase' }}>Team A · Seats 0 & 2</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', letterSpacing: '0.10em', textTransform: 'uppercase' }}>Team B · Seats 1 & 3</span>
           </div>
 
           {/* 4 slots */}
@@ -193,8 +196,8 @@ export default function WaitingRoom({
                     background: player
                       ? isTeamA ? '#7f1d1d' : '#374151'
                       : 'transparent',
-                    border: player ? 'none' : '1px dashed #1a4a2e',
-                    color: player ? '#f0f0f0' : '#1a4a2e',
+                    border: player ? 'none' : '1px dashed rgba(0,120,55,0.50)',
+                    color: player ? '#f0f0f0' : '#3d7055',
                   }}>
                   {seat}
                 </div>
@@ -208,12 +211,12 @@ export default function WaitingRoom({
                       )}
                     </span>
                   ) : (
-                    <span className="text-sm" style={{ color: '#1a4a2e' }}>Empty seat</span>
+                    <span className="text-sm" style={{ color: '#3d7055' }}>Empty seat</span>
                   )}
                 </div>
 
-                <span className="text-[10px] font-bold flex-shrink-0"
-                  style={{ color: isTeamA ? '#b91c1c' : '#4b5563' }}>
+                <span className="text-[11px] font-bold flex-shrink-0"
+                  style={{ color: isTeamA ? '#c92a2a' : '#6b7280' }}>
                   {isTeamA ? 'T·A' : 'T·B'}
                 </span>
               </motion.div>
@@ -240,7 +243,7 @@ export default function WaitingRoom({
         {isCreator ? (
           <>
             {!isFull && (
-              <p className="text-center text-xs mb-3" style={{ color: '#2e5a40' }}>
+              <p className="text-center text-xs mb-3" style={{ color: '#3d7055' }}>
                 Need {4 - session.players.length} more player{session.players.length < 3 ? 's' : ''} to start
               </p>
             )}
@@ -263,7 +266,7 @@ export default function WaitingRoom({
               className="w-4 h-4 rounded-full border-2"
               style={{ borderColor: '#183d26', borderTopColor: '#f59e0b' }}
             />
-            <p className="text-sm" style={{ color: '#2e5a40' }}>Waiting for the host to start…</p>
+            <p className="text-sm" style={{ color: '#3d7055' }}>Waiting for the host to start…</p>
           </div>
         )}
       </motion.div>

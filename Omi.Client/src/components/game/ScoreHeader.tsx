@@ -46,7 +46,7 @@ function RoundRow({ r, index }: { r: RoundResult; index: number }) {
       }}
     >
       {/* Round number */}
-      <span style={{ fontSize: 9.5, fontWeight: 700, color: '#3d7055', letterSpacing: '0.12em', minWidth: 20 }}>R{r.roundNumber}</span>
+      <span style={{ fontSize: 10, fontWeight: 700, color: '#3d7055', letterSpacing: '0.10em', minWidth: 20 }}>R{r.roundNumber}</span>
 
       {/* Trump */}
       <span className={tRed ? 'text-red-400' : 'text-gray-300'} style={{ fontSize: 14, lineHeight: 1, minWidth: 14, textAlign: 'center' }}>
@@ -55,7 +55,7 @@ function RoundRow({ r, index }: { r: RoundResult; index: number }) {
 
       {/* Trick bar — Team A */}
       <div className="flex items-center gap-1 flex-1">
-        <span style={{ fontSize: 9, fontWeight: 700, color: '#7f1d1d', letterSpacing: '0.08em' }}>A</span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: '#c92a2a', letterSpacing: '0.08em' }}>A</span>
         <div className="flex gap-[3px]">
           {Array.from({ length: 8 }).map((_, i) => (
             <div
@@ -72,7 +72,7 @@ function RoundRow({ r, index }: { r: RoundResult; index: number }) {
       </div>
 
       {/* Divider */}
-      <span style={{ fontSize: 10, color: '#2e5a40' }}>vs</span>
+      <span style={{ fontSize: 10, color: '#3d7055' }}>vs</span>
 
       {/* Trick bar — Team B */}
       <div className="flex items-center gap-1 flex-1 justify-end">
@@ -89,7 +89,7 @@ function RoundRow({ r, index }: { r: RoundResult; index: number }) {
             />
           ))}
         </div>
-        <span style={{ fontSize: 9, fontWeight: 700, color: '#374151', letterSpacing: '0.08em' }}>B</span>
+        <span style={{ fontSize: 10, fontWeight: 700, color: '#4b5563', letterSpacing: '0.08em' }}>B</span>
       </div>
 
       {/* Points earned badge */}
@@ -136,12 +136,12 @@ export default function ScoreHeader({ session, phase }: Props) {
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#ef4444', boxShadow: '0 0 5px rgba(239,68,68,0.7)' }} />
           <div className="min-w-0">
-            <div style={{ fontSize: 9, fontWeight: 700, color: '#7f1d1d', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Team A</div>
-            <div className="truncate" style={{ fontSize: 10, color: '#2e5a40', maxWidth: 'clamp(50px, 14vw, 80px)' }}>{teamANames.join(' & ') || '—'}</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#c92a2a', letterSpacing: '0.10em', textTransform: 'uppercase' }}>Team A</div>
+            <div className="truncate" style={{ fontSize: 11, color: '#4a8a62', maxWidth: 'clamp(50px, 14vw, 80px)' }}>{teamANames.join(' & ') || '—'}</div>
           </div>
           <div className="flex items-baseline gap-0.5 flex-shrink-0">
             <ScorePill value={session.teamAMatchPoints} team="A" />
-            <span style={{ fontSize: 10, color: '#1e3028' }}>/10</span>
+            <span style={{ fontSize: 11, color: '#3d7055' }}>/10</span>
           </div>
         </div>
 
@@ -160,13 +160,13 @@ export default function ScoreHeader({ session, phase }: Props) {
                 className="flex items-center gap-1 px-2 py-0.5 rounded-full"
                 style={{ background: 'rgba(100,50,0,0.45)', border: '1px solid rgba(245,158,11,0.40)' }}
               >
-                <span style={{ fontSize: 9, fontWeight: 700, color: '#92650a', letterSpacing: '0.1em', textTransform: 'uppercase' }}>trump</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#b07e20', letterSpacing: '0.1em', textTransform: 'uppercase' }}>trump</span>
                 <span className="font-black leading-none" style={{ fontSize: 15, color: isRedSuit(session.trumpSuit) ? '#f87171' : '#e5e7eb' }}>
                   {SUIT_SYMBOL[session.trumpSuit]}
                 </span>
               </motion.div>
             ) : (
-              <div style={{ fontSize: 9, color: '#1e3028', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>
+              <div style={{ fontSize: 10, color: '#3d7055', letterSpacing: '0.10em', textTransform: 'uppercase', fontWeight: 600 }}>
                 {phase.replace(/([A-Z])/g, ' $1').trim()}
               </div>
             )}
@@ -188,11 +188,11 @@ export default function ScoreHeader({ session, phase }: Props) {
                     {session.teamATricksWon}
                   </motion.span>
                 </AnimatePresence>
-                <span style={{ fontSize: 8, fontWeight: 700, color: '#7f1d1d', letterSpacing: '0.1em' }}>A</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#c92a2a', letterSpacing: '0.1em' }}>A</span>
               </div>
 
               {/* Divider */}
-              <span style={{ fontSize: 13, color: '#2e5a40', fontWeight: 700, lineHeight: 1, paddingBottom: 10 }}>–</span>
+              <span style={{ fontSize: 13, color: '#3d7055', fontWeight: 700, lineHeight: 1, paddingBottom: 10 }}>–</span>
 
               {/* Team B count */}
               <div className="flex flex-col items-center" style={{ minWidth: 28 }}>
@@ -207,7 +207,7 @@ export default function ScoreHeader({ session, phase }: Props) {
                     {session.teamBTricksWon}
                   </motion.span>
                 </AnimatePresence>
-                <span style={{ fontSize: 8, fontWeight: 700, color: '#374151', letterSpacing: '0.1em' }}>B</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: '#4b5563', letterSpacing: '0.1em' }}>B</span>
               </div>
             </div>
           )}
@@ -235,7 +235,7 @@ export default function ScoreHeader({ session, phase }: Props) {
           )}
 
           {session.carriedPoints > 0 && (
-            <span style={{ fontSize: 9, color: '#d4a017', fontWeight: 700 }}>+{session.carriedPoints} carry</span>
+            <span style={{ fontSize: 11, color: '#d4a017', fontWeight: 700 }}>+{session.carriedPoints} carry</span>
           )}
         </div>
 
@@ -243,11 +243,11 @@ export default function ScoreHeader({ session, phase }: Props) {
         <div className="flex items-center gap-2 min-w-0 flex-1 justify-end">
           <div className="flex items-baseline gap-0.5 flex-shrink-0">
             <ScorePill value={session.teamBMatchPoints} team="B" />
-            <span style={{ fontSize: 10, color: '#1e3028' }}>/10</span>
+            <span style={{ fontSize: 11, color: '#3d7055' }}>/10</span>
           </div>
           <div className="min-w-0 text-right">
-            <div style={{ fontSize: 9, fontWeight: 700, color: '#374151', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Team B</div>
-            <div className="truncate" style={{ fontSize: 10, color: '#2e5a40', maxWidth: 'clamp(50px, 14vw, 80px)' }}>{teamBNames.join(' & ') || '—'}</div>
+            <div style={{ fontSize: 10, fontWeight: 700, color: '#4b5563', letterSpacing: '0.10em', textTransform: 'uppercase' }}>Team B</div>
+            <div className="truncate" style={{ fontSize: 11, color: '#4a8a62', maxWidth: 'clamp(50px, 14vw, 80px)' }}>{teamBNames.join(' & ') || '—'}</div>
           </div>
           <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#6b7280', boxShadow: '0 0 5px rgba(107,114,128,0.50)' }} />
         </div>
@@ -267,14 +267,14 @@ export default function ScoreHeader({ session, phase }: Props) {
               animate={{ opacity: 1, y: 0 }}
               className="flex items-center gap-1.5"
             >
-              <span style={{ fontSize: 9, color: '#1e3028', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: 10, color: '#3d7055', fontWeight: 700, letterSpacing: '0.10em', textTransform: 'uppercase' }}>
                 Last round:
               </span>
-              <span style={{ fontSize: 9, fontWeight: 800, color: '#f87171' }}>A {latest.teamATricks}</span>
-              <span style={{ fontSize: 9, color: '#2e5a40' }}>–</span>
-              <span style={{ fontSize: 9, fontWeight: 800, color: '#9ca3af' }}>{latest.teamBTricks} B</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: '#f87171' }}>A {latest.teamATricks}</span>
+              <span style={{ fontSize: 10, color: '#3d7055' }}>–</span>
+              <span style={{ fontSize: 10, fontWeight: 800, color: '#9ca3af' }}>{latest.teamBTricks} B</span>
               <span style={{
-                fontSize: 9, fontWeight: 700,
+                fontSize: 10, fontWeight: 700,
                 color: latest.carryAdded > 0 ? '#fcd34d' : latest.teamAPointsEarned > 0 ? '#f87171' : '#9ca3af',
               }}>
                 {latest.carryAdded > 0
@@ -290,13 +290,13 @@ export default function ScoreHeader({ session, phase }: Props) {
 
           {session.roundHistory.length > 1 && (
             <div className="flex items-center gap-1">
-              <span style={{ fontSize: 9, color: '#1e3028', fontWeight: 600 }}>
+              <span style={{ fontSize: 10, color: '#3d7055', fontWeight: 600 }}>
                 {historyOpen ? 'Hide' : `All ${session.roundHistory.length} rounds`}
               </span>
               <motion.span
                 animate={{ rotate: historyOpen ? 180 : 0 }}
                 transition={{ duration: 0.2 }}
-                style={{ fontSize: 10, color: '#1e3028', lineHeight: 1 }}
+                style={{ fontSize: 11, color: '#3d7055', lineHeight: 1 }}
               >
                 ▾
               </motion.span>
@@ -319,7 +319,7 @@ export default function ScoreHeader({ session, phase }: Props) {
               {session.roundHistory.map((r, i) => <RoundRow key={r.roundNumber} r={r} index={i} />)}
               {/* Totals row */}
               <div className="flex items-center justify-between px-3 pt-1" style={{ borderTop: '1px solid rgba(0,70,25,0.20)' }}>
-                <span style={{ fontSize: 9, color: '#1e3028', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Match total</span>
+                <span style={{ fontSize: 10, color: '#3d7055', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Match total</span>
                 <div className="flex items-center gap-3">
                   <span style={{ fontSize: 12, fontWeight: 800, color: '#f87171' }}>A: {session.teamAMatchPoints}</span>
                   <span style={{ fontSize: 10, color: '#2e5a40' }}>—</span>

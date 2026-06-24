@@ -363,7 +363,7 @@ export default function GameTable({
                   : '0 6px 28px rgba(0,0,0,0.65)',
               }}
             >
-              <p style={{ fontSize: 9.5, fontWeight: 700, color: '#2e5a40', letterSpacing: '0.22em', textTransform: 'uppercase', marginBottom: 3 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#3d7055', letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 3 }}>
                 Round {roundLeader.roundNum}
               </p>
               <p className="font-black" style={{ fontSize: 15, color: roundLeader.isMe ? '#0dcfb1' : '#d0e8da' }}>
@@ -426,7 +426,7 @@ export default function GameTable({
                     className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 rounded-lg pointer-events-none"
                     style={{ background: 'rgba(0,8,4,0.75)', border: '1px solid rgba(245,158,11,0.35)' }}
                   >
-                    <span className="text-amber-600 text-[9px] font-bold uppercase tracking-wider">trump</span>
+                    <span style={{ fontSize: 10, color: '#b07e20', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>trump</span>
                     <span className={`text-base leading-none font-black ${isRedSuit(session.trumpSuit) ? 'text-red-500' : 'text-gray-200'}`}>
                       {SUIT_SYMBOL[session.trumpSuit]}
                     </span>
@@ -445,7 +445,7 @@ export default function GameTable({
                     className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-1 rounded-lg pointer-events-none"
                     style={{ background: 'rgba(0,8,4,0.80)', border: '1px solid rgba(0,100,45,0.40)' }}
                   >
-                    <span className="text-green-700 text-[9px] font-semibold uppercase tracking-wider">led</span>
+                    <span style={{ fontSize: 10, color: '#3d7055', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}>led</span>
                     <span className={`text-base leading-none font-black ${isRedSuit(ledSuit) ? 'text-red-400' : 'text-gray-200'}`}>
                       {SUIT_SYMBOL[ledSuit]}
                     </span>
@@ -493,8 +493,8 @@ export default function GameTable({
                             {/* Play order badge */}
                             {order && (
                               <div
-                                className="absolute -top-1.5 -right-1.5 z-20 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black border"
-                                style={{ background: '#00120a', borderColor: 'rgba(0,100,45,0.6)', color: '#4a8a62' }}
+                                className="absolute -top-1.5 -right-1.5 z-20 w-4 h-4 rounded-full flex items-center justify-center font-black border"
+                                style={{ fontSize: 10, background: '#00120a', borderColor: 'rgba(0,100,45,0.6)', color: '#4a8a62' }}
                               >
                                 {order}
                               </div>
@@ -525,7 +525,7 @@ export default function GameTable({
                   border: '1px solid rgba(0,70,30,0.40)',
                   touchAction: 'manipulation',
                   WebkitTapHighlightColor: 'transparent',
-                  minHeight: 32,
+                  minHeight: 44,
                 }}
               >
                 Last trick ↗
@@ -554,12 +554,14 @@ export default function GameTable({
                       animate={{ scale: 1,    y: 0,  opacity: 1 }}
                       exit={  { scale: 0.80,  y: -20, opacity: 0 }}
                       transition={{ type: 'spring', stiffness: 500, damping: 30, delay: 0.22 }}
-                      className="rounded-2xl px-6 py-5 text-center"
+                      className="rounded-2xl px-6 py-5 text-center mx-4"
                       style={{
                         background: 'rgba(0,12,6,0.98)',
                         border: `1.5px solid ${teamBorder}`,
                         boxShadow: `0 0 48px ${teamGlow}, 0 8px 32px rgba(0,0,0,0.72)`,
                         minWidth: 200,
+                        maxWidth: 300,
+                        width: '100%',
                       }}
                     >
                       {/* Team banner — the most prominent thing, seen by everyone */}
@@ -597,14 +599,14 @@ export default function GameTable({
                         style={{ fontSize: 16, color: teamColor }}>
                         {trickResult.isMe ? 'You win this trick!' : `${trickResult.winnerName} wins!`}
                       </p>
-                      <p style={{ fontSize: 9.5, color: '#3d7055', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 14 }}>
+                      <p style={{ fontSize: 11, color: '#3d7055', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 14 }}>
                         {trickResult.isMyTeam ? '✦ your team ✦' : 'opponent team'}
                       </p>
 
                       {/* Trick tally — labelled A vs B so everyone can read it */}
                       <div className="flex items-center justify-center gap-3 mb-4">
                         <div className="text-center">
-                          <div style={{ fontSize: 9, fontWeight: 700, color: '#7f1d1d', letterSpacing: '0.1em', marginBottom: 3 }}>TEAM A</div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: '#c92a2a', letterSpacing: '0.1em', marginBottom: 3 }}>TEAM A</div>
                           <div className="flex gap-[4px]">
                             {Array.from({ length: 8 }).map((_, i) => (
                               <motion.div
@@ -623,10 +625,10 @@ export default function GameTable({
                           <div style={{ fontSize: 18, fontWeight: 900, color: '#f87171', marginTop: 4 }}>{trickResult.teamATricks}</div>
                         </div>
 
-                        <div style={{ fontSize: 12, color: '#2e5a40', fontWeight: 700, alignSelf: 'center' }}>vs</div>
+                        <div style={{ fontSize: 12, color: '#3d7055', fontWeight: 700, alignSelf: 'center' }}>vs</div>
 
                         <div className="text-center">
-                          <div style={{ fontSize: 9, fontWeight: 700, color: '#374151', letterSpacing: '0.1em', marginBottom: 3 }}>TEAM B</div>
+                          <div style={{ fontSize: 10, fontWeight: 700, color: '#4b5563', letterSpacing: '0.1em', marginBottom: 3 }}>TEAM B</div>
                           <div className="flex gap-[4px]">
                             {Array.from({ length: 8 }).map((_, i) => (
                               <motion.div
@@ -890,7 +892,7 @@ export default function GameTable({
               </p>
 
               <div className="rounded-2xl p-4 mb-5 text-left" style={{ background: 'rgba(0,10,5,0.80)' }}>
-                <p className="text-green-900 text-[10px] uppercase tracking-widest mb-2">Round History</p>
+                <p style={{ fontSize: 11, color: '#3d7055', textTransform: 'uppercase', letterSpacing: '0.14em', fontWeight: 700, marginBottom: 8 }}>Round History</p>
                 <div className="space-y-1.5">
                   {session.roundHistory.map(r => (
                     <div key={r.roundNumber} className="flex items-center gap-2 text-xs">
@@ -963,8 +965,8 @@ export default function GameTable({
                           <div className="absolute -inset-1 rounded-xl pointer-events-none"
                             style={{ boxShadow: '0 0 0 2px #f59e0b, 0 0 14px 3px rgba(245,158,11,0.35)' }} />
                         )}
-                        <div className="absolute -top-1.5 -right-1.5 z-10 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-black border"
-                          style={{ background: '#00120a', borderColor: 'rgba(0,100,45,0.6)', color: '#4a8a62' }}>
+                        <div className="absolute -top-1.5 -right-1.5 z-10 w-4 h-4 rounded-full flex items-center justify-center font-black border"
+                          style={{ fontSize: 10, background: '#00120a', borderColor: 'rgba(0,100,45,0.6)', color: '#4a8a62' }}>
                           {order}
                         </div>
                         <CardView card={entry.card} size="md" />
@@ -980,8 +982,8 @@ export default function GameTable({
 
               <button
                 onClick={() => setShowLastTrick(false)}
-                className="mt-4 w-full text-xs py-1.5 rounded-lg font-semibold transition-colors"
-                style={{ background: 'rgba(0,60,25,0.50)', color: '#3d7055', border: '1px solid rgba(0,80,35,0.40)' }}
+                className="mt-4 w-full text-xs rounded-lg font-semibold transition-colors"
+                style={{ background: 'rgba(0,60,25,0.50)', color: '#3d7055', border: '1px solid rgba(0,80,35,0.40)', minHeight: 44, touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                 onMouseEnter={e => { e.currentTarget.style.color = '#0dcfb1' }}
                 onMouseLeave={e => { e.currentTarget.style.color = '#3d7055' }}
               >

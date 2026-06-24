@@ -21,10 +21,10 @@ export default function PlayerSeat({
 }: Props) {
   if (!player) {
     return (
-      <div className="flex flex-col items-center gap-1 select-none" style={{ opacity: 0.25 }}>
+      <div className="flex flex-col items-center gap-1 select-none" style={{ opacity: 0.55 }}>
         <div className="w-9 h-9 rounded-full border-2 border-dashed"
-          style={{ borderColor: 'rgba(0,80,30,0.50)' }} />
-        <span style={{ fontSize: 10, color: '#1e3028' }}>{label}</span>
+          style={{ borderColor: 'rgba(0,100,45,0.55)' }} />
+        <span style={{ fontSize: 11, color: '#3d7055' }}>{label}</span>
       </div>
     )
   }
@@ -92,8 +92,8 @@ export default function PlayerSeat({
               transition={{ type: 'spring', stiffness: 500 }}
               className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full px-1.5 font-black whitespace-nowrap"
               style={{
-                fontSize: 8,
-                lineHeight: '14px',
+                fontSize: 11,
+                lineHeight: '16px',
                 background: countdown <= 3 ? 'rgba(180,0,0,0.92)' : 'rgba(100,55,0,0.92)',
                 border:     countdown <= 3 ? '1px solid #ef4444' : '1px solid #d4a017',
                 color:      countdown <= 3 ? '#fca5a5' : '#fcd34d',
@@ -109,12 +109,12 @@ export default function PlayerSeat({
       {/* Name + relation */}
       <div className="flex flex-col items-center gap-0.5">
         <span className="font-semibold leading-none truncate"
-          style={{ fontSize: 11, color: '#d0e8da', maxWidth: 70, display: 'block', textAlign: 'center' }}>
+          style={{ fontSize: 12, color: '#d0e8da', maxWidth: 70, display: 'block', textAlign: 'center' }}>
           {player.displayName}
         </span>
         <span className="rounded-full px-1.5 py-px font-semibold leading-none"
           style={{
-            fontSize: 8.5,
+            fontSize: 10,
             background: relation === 'you' ? 'rgba(13,207,177,0.12)' : relation === 'partner' ? 'rgba(127,29,29,0.25)' : 'rgba(55,65,81,0.25)',
             color: relation === 'you' ? '#0dcfb1' : relation === 'partner' ? '#f87171' : '#6b7280',
             border: relation === 'you' ? '1px solid rgba(13,207,177,0.25)' : relation === 'partner' ? '1px solid rgba(185,28,28,0.25)' : '1px solid rgba(75,85,99,0.25)',
@@ -143,7 +143,7 @@ export default function PlayerSeat({
                   transform: `rotate(${angle}deg)`,
                   transformOrigin: '50% 160%',
                   zIndex: i,
-                  border: '1.5px solid rgba(200,160,0,0.35) !important',
+                  border: '1.5px solid rgba(200,160,0,0.35)',
                 }}
               />
             )
@@ -152,7 +152,7 @@ export default function PlayerSeat({
       )}
 
       {disconnected && (
-        <span style={{ fontSize: 8.5, color: '#ef4444', fontWeight: 700, letterSpacing: '0.05em' }}>DISCONNECTED</span>
+        <span style={{ fontSize: 10, color: '#ef4444', fontWeight: 700, letterSpacing: '0.05em' }}>DISCONNECTED</span>
       )}
     </div>
   )

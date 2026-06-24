@@ -49,7 +49,7 @@ export default function CardView({
       className={[
         s.card,
         'rounded-lg border select-none card-face relative overflow-hidden',
-        illegal   ? 'opacity-25' : '',
+        illegal   ? 'opacity-40' : '',
         highlight ? 'border-teal-400 card-face-highlight' : 'border-slate-200',
       ].filter(Boolean).join(' ')}
     >
@@ -81,7 +81,7 @@ export default function CardView({
       {highlight && (
         <motion.div
           className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(135deg, rgba(13,207,177,0.10) 0%, transparent 70%)' }}
+          style={{ background: 'linear-gradient(135deg, rgba(13,207,177,0.20) 0%, transparent 70%)' }}
           animate={{ opacity: [0.4, 1, 0.4] }}
           transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
         />
