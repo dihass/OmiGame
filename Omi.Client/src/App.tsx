@@ -42,8 +42,8 @@ export default function App() {
     const playerId = crypto.randomUUID()
     try {
       const token = await authToken(playerId, displayName, lobbyId)
-      if (create) await gameApi.createRoom(lobbyId)
-      const s = await gameApi.joinRoom(lobbyId, playerId, displayName)
+      if (create) await gameApi.createRoom(lobbyId, token)
+      const s = await gameApi.joinRoom(lobbyId, token)
 
       soundPlayerJoin()
       setMyPlayerId(playerId)
@@ -64,7 +64,7 @@ export default function App() {
   async function handleStart() {
     setStartError(null)
     try {
-      const s = await gameApi.startGame(myLobbyId)
+      const s = await gameApi.startGame(myLobbyId, jwt!)
       setSession(s)
       setView('game')
     } catch (e) {
@@ -73,19 +73,15 @@ export default function App() {
   }
 
   async function handleStartRound() {
-    try { setSession(await gameApi.startGame(myLobbyId)) } catch { /* SignalR re-syncs */ }
+    try { setSession(await gameApi.startGame(myLobbyId, jwt!)) } catch { /* SignalR re-syncs */ }
   }
 
   async function handleSetTrump(suit: Suit) {
-    const me = session?.players.find(p => p.playerId === myPlayerId)
-    if (!me) return
-    setSession(await gameApi.setTrump(myLobbyId, me.seatIndex, suit))
+    try { setSession(await gameApi.setTrump(myLobbyId, suit, jwt!)) } catch { /* SignalR re-syncs */ }
   }
 
   async function handlePlayCard(card: Card) {
-    const me = session?.players.find(p => p.playerId === myPlayerId)
-    if (!me) return
-    setSession(await gameApi.playCard(myLobbyId, me.seatIndex, card))
+    try { setSession(await gameApi.playCard(myLobbyId, card, jwt!)) } catch { /* SignalR re-syncs */ }
   }
 
   function handleReturnToLobby() {
