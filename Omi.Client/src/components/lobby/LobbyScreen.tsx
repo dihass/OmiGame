@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { loadLastDisplayName } from '../../lib/sessionStorage'
 
 interface Props {
   onJoin: (displayName: string, lobbyId: string, create: boolean) => Promise<void>
@@ -28,7 +29,8 @@ const CODE_LENGTH  = 6
 const CODE_PATTERN = /^[A-Z0-9]{6}$/
 
 export default function LobbyScreen({ onJoin, error }: Props) {
-  const [name,    setName]    = useState('')
+  // Pre-fill name from last visit — small UX win, no security cost (display name is public)
+  const [name,    setName]    = useState(() => loadLastDisplayName())
   const [code,    setCode]    = useState('')
   const [mode,    setMode]    = useState<'create' | 'join'>('create')
   const [loading, setLoading] = useState(false)

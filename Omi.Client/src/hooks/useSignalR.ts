@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import * as signalR from '@microsoft/signalr'
 import { SIGNALR_EVENTS } from '../constants/signalrEvents'
 import type { Card, GameSession } from '../types/game'
-import { wsUrl } from '../api/baseUrl'
+import { wsUrl } from './../api/baseUrl'
 
 export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'disconnected'
 
@@ -19,10 +19,20 @@ export interface SignalRHandlers {
   onLobbyNotFound:      () => void
 }
 
-export function useSignalR(jwt: string | null, handlers: SignalRHandlers): ConnectionState {
+export interface SignalRApi {
+  state:     ConnectionState
+  reconnect: () => void
+}
+
+export function useSignalR(jwt: string | null, handlers: SignalRHandlers): SignalRApi {
   const handlersRef = useRef(handlers)
   handlersRef.current = handlers
   const [state, setState] = useState<ConnectionState>('idle')
+  // Bumping this re-runs the effect, forcing a fresh connection. Used by the
+  // manual-reconnect button when automatic retries have exhausted.
+  const [reconnectKey, setReconnectKey] = useState(0)
+
+  const reconnect = useCallback(() => setReconnectKey(k => k + 1), [])
 
   useEffect(() => {
     if (!jwt) { setState('idle'); return }
@@ -58,7 +68,7 @@ export function useSignalR(jwt: string | null, handlers: SignalRHandlers): Conne
       })
 
     return () => { void conn.stop() }
-  }, [jwt])
+  }, [jwt, reconnectKey])
 
-  return state
+  return { state, reconnect }
 }

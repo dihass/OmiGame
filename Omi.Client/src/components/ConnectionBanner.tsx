@@ -1,14 +1,17 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import type { ConnectionState } from '../hooks/useSignalR'
 
-interface Props { state: ConnectionState }
+interface Props {
+  state:       ConnectionState
+  onReconnect: () => void
+}
 
-export default function ConnectionBanner({ state }: Props) {
+export default function ConnectionBanner({ state, onReconnect }: Props) {
   // Only surface non-healthy states. 'connected' / 'idle' stay silent.
   const visible = state === 'reconnecting' || state === 'disconnected' || state === 'connecting'
 
   const config = state === 'disconnected'
-    ? { text: 'Disconnected — refresh the page to rejoin', bg: 'rgba(120,0,0,0.92)', border: 'rgba(200,0,0,0.55)', color: '#fca5a5' }
+    ? { text: 'Disconnected', bg: 'rgba(120,0,0,0.92)', border: 'rgba(200,0,0,0.55)', color: '#fca5a5' }
     : state === 'reconnecting'
       ? { text: 'Reconnecting…', bg: 'rgba(100,55,0,0.92)', border: 'rgba(245,158,11,0.55)', color: '#fcd34d' }
       : { text: 'Connecting…',   bg: 'rgba(0,40,18,0.92)',  border: 'rgba(0,120,55,0.55)',   color: '#0dcfb1' }
@@ -45,6 +48,20 @@ export default function ConnectionBanner({ state }: Props) {
               />
             )}
             <span>{config.text}</span>
+            {state === 'disconnected' && (
+              <button
+                onClick={onReconnect}
+                className="ml-2 px-3 py-0.5 rounded-full"
+                style={{
+                  fontSize: 11, fontWeight: 800, letterSpacing: '0.05em',
+                  background: 'rgba(255,255,255,0.10)',
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  color: '#fff', cursor: 'pointer',
+                }}
+              >
+                Reconnect
+              </button>
+            )}
           </div>
         </motion.div>
       )}

@@ -76,4 +76,13 @@ public sealed class GameController : ControllerBase
         if (guard is not null) return guard;
         return Ok(await _game.PlayCardAsync(lobbyId, CallerId, card));
     }
+
+    [HttpPost("leave/{lobbyId}")]
+    public async Task<IActionResult> Leave(string lobbyId)
+    {
+        var guard = GuardLobby(lobbyId);
+        if (guard is not null) return guard;
+        await _game.LeaveAsync(lobbyId, CallerId);
+        return NoContent();
+    }
 }

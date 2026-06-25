@@ -153,7 +153,24 @@ public sealed class GameService
         }
 
         var player = session.Players.FirstOrDefault(p => p.PlayerId == playerId);
-        if (player?.IsDisconnected != true) return;
+        // Player was cleaned up after the disconnect grace window — surface this so the
+        // client clears stale state instead of hanging on a "Reconnecting…" overlay.
+        if (player is null)
+        {
+            await _notifier.LobbyNotFoundAsync(connectionId);
+            return;
+        }
+
+        // Already connected (e.g. a second tab opened the same lobby) — push current state
+        // so the new connection isn't blank, but skip the reconnect notification.
+        if (!player.IsDisconnected)
+        {
+            var currentDto = GameSessionDto.From(session);
+            await _notifier.GameResumedAsync(connectionId, currentDto);
+            if (player.Hand.Count > 0)
+                await _notifier.HandDealtAsync(playerId, player.Hand);
+            return;
+        }
 
         player.IsDisconnected      = false;
         player.DisconnectTimestamp = null;
@@ -167,6 +184,36 @@ public sealed class GameService
         // Restore the reconnecting player's private hand — only their own, not others'
         if (player.Hand.Count > 0)
             await _notifier.HandDealtAsync(playerId, player.Hand);
+    }
+
+    public async Task<GameSessionDto?> LeaveAsync(string lobbyId, string playerId)
+    {
+        await using var _ = await _lock.AcquireAsync(lobbyId);
+
+        var session = await _games.GetAsync(lobbyId);
+        if (session is null) return null;
+
+        var player = session.Players.FirstOrDefault(p => p.PlayerId == playerId);
+        if (player is null) return GameSessionDto.From(session);
+
+        session.Players.Remove(player);
+
+        // Last player out closes the lobby entirely — no point keeping an empty room around
+        if (session.Players.Count == 0)
+        {
+            await _games.DeleteAsync(lobbyId);
+            await _notifier.LobbyClosedAsync(lobbyId);
+            return null;
+        }
+
+        // Re-seat remaining players so SeatIndex stays contiguous (0..N-1)
+        for (int i = 0; i < session.Players.Count; i++)
+            session.Players[i].SeatIndex = i;
+
+        await _games.SaveAsync(lobbyId, session);
+        var dto = GameSessionDto.From(session);
+        await _notifier.LobbyUpdatedAsync(lobbyId, dto);
+        return dto;
     }
 
     public async Task HandleDisconnectAsync(string playerId, string lobbyId)

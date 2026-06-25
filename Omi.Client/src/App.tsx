@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Card, GameSession, Suit } from './types/game'
 import { authToken } from './api/auth'
 import * as gameApi from './api/game'
@@ -9,8 +9,14 @@ import WaitingRoom from './components/lobby/WaitingRoom'
 import GameTable from './components/game/GameTable'
 import ConnectionBanner from './components/ConnectionBanner'
 import { soundPlayerJoin, soundGameStart, soundAiyo } from './lib/sounds'
+import { saveSession, loadSession, clearSession, jwtTtlSeconds } from './lib/sessionStorage'
 
 type View = 'lobby' | 'waiting' | 'game'
+
+// Restore overlay gives up after this long — backend is probably gone.
+const RESTORE_TIMEOUT_MS = 10_000
+// If JWT expires within this window on restore, silently mint a new one before connecting.
+const JWT_REFRESH_THRESHOLD_SECONDS = 30 * 60
 
 function errorMessage(e: unknown, fallback: string): string {
   if (e instanceof ApiError || e instanceof Error) return e.message
@@ -22,6 +28,7 @@ export default function App() {
   const [session, setSession]           = useState<GameSession | null>(null)
   const [myPlayerId, setMyPlayerId]     = useState('')
   const [myLobbyId, setMyLobbyId]       = useState('')
+  const [myDisplayName, setMyDisplayName] = useState('')
   const [isLobbyCreator, setIsLobbyCreator] = useState(false)
   const [jwt, setJwt]                   = useState<string | null>(null)
   const [myHand, setMyHand]                 = useState<Card[]>([])
@@ -31,32 +38,102 @@ export default function App() {
   const [startError, setStartError]     = useState<string | null>(null)
   const [actionError, setActionError]   = useState<string | null>(null)
   const [copied, setCopied]             = useState(false)
+  const [isRestoring, setIsRestoring]   = useState(false)
+  const restoreTimerRef = useRef<number | null>(null)
 
   // ── SignalR lifecycle ──────────────────────────────────────────────────────
-  const connectionState = useSignalR(jwt, {
-    onLobbyUpdated:       (s) => { setSession(s); setView(v => v === 'game' ? 'game' : 'waiting') },
-    onRoundStarted:       (s) => { if (s.roundHistory.length === 0) soundGameStart(); setSession(s); setView('game') },
+  const { state: connectionState, reconnect } = useSignalR(jwt, {
+    onLobbyUpdated:       (s) => { setSession(s); finishRestoring(); setView(v => v === 'game' ? 'game' : 'waiting') },
+    onRoundStarted:       (s) => { if (s.roundHistory.length === 0) soundGameStart(); setSession(s); finishRestoring(); setView('game') },
     onTrumpSelected:      setSession,
     onCardPlayed:         setSession,
     onHandDealt:          (hand) => setMyHand(hand),
-    onGameResumed:        (s) => { setSession(s); setDisconnectedId(null); setView('game') },
+    onGameResumed:        (s) => { setSession(s); setDisconnectedId(null); finishRestoring(); setView(s.phase === 'Lobby' ? 'waiting' : 'game') },
     onPlayerDisconnected: (id) => { setDisconnectedId(id); soundAiyo() },
     onPlayerReconnected:  () => setDisconnectedId(null),
-    onLobbyClosed:        () => { setLobbyClosed(true); setDisconnectedId(null) },
-    onLobbyNotFound:      () => { setLobbyError('Lobby no longer exists.'); handleReturnToLobby() },
+    onLobbyClosed:        () => { setLobbyClosed(true); setDisconnectedId(null); finishRestoring() },
+    onLobbyNotFound:      () => { setLobbyError('Your previous lobby is no longer available.'); handleReturnToLobby({ skipServerLeave: true }) },
   })
+
+  // ── Restore previous session on mount ─────────────────────────────────────
+  useEffect(() => {
+    const persisted = loadSession()
+    if (!persisted) return
+
+    setIsRestoring(true)
+
+    void (async () => {
+      let token = persisted.jwt
+      // Re-auth proactively if the saved JWT is close to expiring — avoids the
+      // ugly drop-and-reconnect mid-game.
+      if (jwtTtlSeconds(token) < JWT_REFRESH_THRESHOLD_SECONDS) {
+        try {
+          token = await authToken(persisted.playerId, persisted.displayName, persisted.lobbyId)
+        } catch {
+          // Refresh failed (server down, validation rejected, etc.) — fall back to lobby
+          clearSession()
+          setIsRestoring(false)
+          setLobbyError('Your session expired. Please rejoin.')
+          return
+        }
+      }
+
+      setMyPlayerId(persisted.playerId)
+      setMyLobbyId(persisted.lobbyId)
+      setMyDisplayName(persisted.displayName)
+      setIsLobbyCreator(persisted.isLobbyCreator)
+      setJwt(token)
+      // Tentative view until SignalR delivers actual state. WaitingRoom needs a session,
+      // so we render the restore overlay (see below) until the first state event arrives.
+      setView('waiting')
+    })()
+
+    // Hard timeout — never strand the user on a "Reconnecting…" overlay
+    restoreTimerRef.current = window.setTimeout(() => {
+      if (!session) {
+        setLobbyError('Could not reconnect to your previous game.')
+        handleReturnToLobby({ skipServerLeave: true })
+      }
+    }, RESTORE_TIMEOUT_MS)
+
+    return () => { if (restoreTimerRef.current) clearTimeout(restoreTimerRef.current) }
+    // Intentionally only on mount; further reloads start a fresh restore flow
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Clear the restore overlay once we have real state from the server
+  function finishRestoring() {
+    if (!isRestoring) return
+    setIsRestoring(false)
+    if (restoreTimerRef.current) {
+      clearTimeout(restoreTimerRef.current)
+      restoreTimerRef.current = null
+    }
+  }
+
+  // ── Persist session on auth/lobby changes ─────────────────────────────────
+  useEffect(() => {
+    if (jwt && myPlayerId && myLobbyId && myDisplayName) {
+      saveSession({
+        jwt,
+        playerId:       myPlayerId,
+        lobbyId:        myLobbyId,
+        displayName:    myDisplayName,
+        isLobbyCreator,
+      })
+    }
+  }, [jwt, myPlayerId, myLobbyId, myDisplayName, isLobbyCreator])
 
   // ── Token expiry / forced logout ──────────────────────────────────────────
   function handleUnauthorized(message: string) {
     setLobbyError(message)
-    handleReturnToLobby()
+    handleReturnToLobby({ skipServerLeave: true })
   }
 
   // ── Lobby join / create ────────────────────────────────────────────────────
   async function handleJoin(displayName: string, lobbyId: string, create: boolean) {
     setLobbyError(null)
 
-    // Defensive client-side guards in case a caller bypasses the form.
     const trimmedName = displayName.trim()
     const normalized  = lobbyId.trim().toUpperCase()
     if (trimmedName.length < 2 || trimmedName.length > 30) {
@@ -81,6 +158,7 @@ export default function App() {
       soundPlayerJoin()
       setMyPlayerId(playerId)
       setMyLobbyId(normalized)
+      setMyDisplayName(trimmedName)
       setIsLobbyCreator(create)
       setSession(s)
       setLobbyClosed(false)
@@ -114,7 +192,6 @@ export default function App() {
       setSession(await gameApi.startGame(myLobbyId, jwt))
     } catch (e) {
       if (e instanceof ApiError && e.code === 'unauthorized') return handleUnauthorized(e.message)
-      // Other failures (conflict, server) — surface them; SignalR will re-sync state shortly.
       setActionError(errorMessage(e, 'Could not start next round.'))
     }
   }
@@ -125,7 +202,6 @@ export default function App() {
       setSession(await gameApi.setTrump(myLobbyId, suit, jwt))
     } catch (e) {
       if (e instanceof ApiError && e.code === 'unauthorized') return handleUnauthorized(e.message)
-      // Re-throw so GameTable's caller can show an inline trump error
       throw e instanceof Error ? e : new Error(errorMessage(e, 'Could not set trump.'))
     }
   }
@@ -135,14 +211,11 @@ export default function App() {
       handleUnauthorized('Your session has expired. Please rejoin.')
       throw new Error('Not authenticated')
     }
-    // Optimistic removal so the card disappears immediately on tap
     const prevHand = myHand
     setMyHand(h => h.filter(c => !(c.suit === card.suit && c.rank === card.rank)))
     try {
       setSession(await gameApi.playCard(myLobbyId, card, jwt))
     } catch (e) {
-      // Restore the card so the player can try again — without this the card vanishes
-      // until the SignalR re-sync arrives.
       setMyHand(prevHand)
       if (e instanceof ApiError && e.code === 'unauthorized') {
         handleUnauthorized(e.message)
@@ -151,7 +224,18 @@ export default function App() {
     }
   }
 
-  function handleReturnToLobby() {
+  /**
+   * Reset to the lobby screen. By default also notifies the server so other
+   * players see the seat free up. Pass skipServerLeave=true for involuntary
+   * exits (expired token, lobby gone) where there's no point hitting the API.
+   */
+  function handleReturnToLobby(opts: { skipServerLeave?: boolean } = {}) {
+    // Fire-and-forget the leave so other players see the seat free up immediately.
+    // We don't await — UI shouldn't wait on the server for a clean return.
+    if (!opts.skipServerLeave && jwt && myLobbyId) {
+      void gameApi.leaveRoom(myLobbyId, jwt).catch(() => { /* best-effort */ })
+    }
+    clearSession()
     setJwt(null)
     setSession(null)
     setMyPlayerId('')
@@ -162,12 +246,11 @@ export default function App() {
     setStartError(null)
     setActionError(null)
     setMyHand([])
+    setIsRestoring(false)
     setView('lobby')
   }
 
   async function handleCopyCode() {
-    // navigator.clipboard is undefined on insecure origins (non-HTTPS, non-localhost).
-    // Fall back to the legacy execCommand path so the copy button still works in dev / on LAN.
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(myLobbyId)
@@ -190,6 +273,14 @@ export default function App() {
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────
+
+  // Restore-in-progress overlay covers the gap between "JWT restored" and
+  // "first SignalR event arrived." Without it the user would see the lobby
+  // form flash before the game pops back.
+  if (isRestoring && !session) {
+    return <RestoringOverlay />
+  }
+
   if (view === 'lobby' || !session) {
     return <LobbyScreen onJoin={handleJoin} error={lobbyError} />
   }
@@ -197,7 +288,7 @@ export default function App() {
   if (view === 'waiting') {
     return (
       <>
-        <ConnectionBanner state={connectionState} />
+        <ConnectionBanner state={connectionState} onReconnect={reconnect} />
         <WaitingRoom
           session={session} myPlayerId={myPlayerId} isCreator={isLobbyCreator}
           onStart={handleStart} onCopyCode={handleCopyCode} copied={copied} startError={startError}
@@ -208,12 +299,12 @@ export default function App() {
 
   return (
     <>
-      <ConnectionBanner state={connectionState} />
+      <ConnectionBanner state={connectionState} onReconnect={reconnect} />
       <GameTable
         session={session} myPlayerId={myPlayerId} isCreator={isLobbyCreator}
         myHand={myHand}
         onPlayCard={handlePlayCard} onSetTrump={handleSetTrump} onStartRound={handleStartRound}
-        disconnectedId={disconnectedId} lobbyClosed={lobbyClosed} onReturnToLobby={handleReturnToLobby}
+        disconnectedId={disconnectedId} lobbyClosed={lobbyClosed} onReturnToLobby={() => handleReturnToLobby()}
       />
       {actionError && (
         <div
@@ -225,5 +316,24 @@ export default function App() {
         </div>
       )}
     </>
+  )
+}
+
+function RestoringOverlay() {
+  return (
+    <div className="min-h-dvh flex flex-col items-center justify-center px-6">
+      <div
+        className="w-14 h-14 rounded-full mb-5"
+        style={{
+          border: '3px solid rgba(212,160,23,0.25)',
+          borderTopColor: '#d4a017',
+          animation: 'omi-spin 1.1s linear infinite',
+        }}
+      />
+      <p style={{ fontSize: 13, color: '#d4a017', fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+        Reconnecting to your game…
+      </p>
+      <style>{`@keyframes omi-spin { to { transform: rotate(360deg); } }`}</style>
+    </div>
   )
 }

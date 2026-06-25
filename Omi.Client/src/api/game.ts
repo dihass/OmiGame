@@ -40,3 +40,10 @@ export async function playCard(lobbyId: string, card: Card, token: string): Prom
     body:    JSON.stringify(card),
   })
 }
+
+export async function leaveRoom(lobbyId: string, token: string): Promise<void> {
+  await apiFetch<void>(`/api/game/leave/${encodeURIComponent(lobbyId)}`, {
+    method:  'POST',
+    headers: authHeaders(token),
+  })
+}
