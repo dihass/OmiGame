@@ -14,7 +14,7 @@ export interface SignalRHandlers {
   onHandDealt:          (hand: Card[]) => void
   onGameResumed:        (session: GameSession) => void
   onPlayerDisconnected: (playerId: string) => void
-  onPlayerReconnected:  () => void
+  onPlayerReconnected:  (playerId: string) => void
   onLobbyClosed:        () => void
   onLobbyNotFound:      () => void
 }
@@ -50,7 +50,7 @@ export function useSignalR(jwt: string | null, handlers: SignalRHandlers): Signa
     conn.on(SIGNALR_EVENTS.HAND_DEALT,          (h: Card[])      => handlersRef.current.onHandDealt(h))
     conn.on(SIGNALR_EVENTS.GAME_RESUMED,        (s: GameSession) => handlersRef.current.onGameResumed(s))
     conn.on(SIGNALR_EVENTS.PLAYER_DISCONNECTED, (pid: string)    => handlersRef.current.onPlayerDisconnected(pid))
-    conn.on(SIGNALR_EVENTS.PLAYER_RECONNECTED,  ()               => handlersRef.current.onPlayerReconnected())
+    conn.on(SIGNALR_EVENTS.PLAYER_RECONNECTED,  (pid: string)    => handlersRef.current.onPlayerReconnected(pid))
     conn.on(SIGNALR_EVENTS.LOBBY_CLOSED,        ()               => handlersRef.current.onLobbyClosed())
     conn.on(SIGNALR_EVENTS.LOBBY_NOT_FOUND,     ()               => handlersRef.current.onLobbyNotFound())
 

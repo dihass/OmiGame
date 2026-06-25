@@ -33,7 +33,9 @@ export default function App() {
   const [isLobbyCreator, setIsLobbyCreator] = useState(false)
   const [jwt, setJwt]                   = useState<string | null>(null)
   const [myHand, setMyHand]                 = useState<Card[]>([])
-  const [disconnectedId, setDisconnectedId] = useState<string | null>(null)
+  // Set, not a single string — two players can disconnect at once and we must
+  // grey out both seats + clear them independently on individual reconnects.
+  const [disconnectedIds, setDisconnectedIds] = useState<Set<string>>(new Set())
   const [lobbyClosed, setLobbyClosed]   = useState(false)
   const [lobbyError, setLobbyError]     = useState<string | null>(null)
   const [startError, setStartError]     = useState<string | null>(null)
@@ -55,10 +57,10 @@ export default function App() {
     onTrumpSelected:      setSession,
     onCardPlayed:         setSession,
     onHandDealt:          (hand) => setMyHand(hand),
-    onGameResumed:        (s) => { setSession(s); setDisconnectedId(null); finishRestoring(); setView(s.phase === 'Lobby' ? 'waiting' : 'game') },
-    onPlayerDisconnected: (id) => { setDisconnectedId(id); soundAiyo() },
-    onPlayerReconnected:  () => setDisconnectedId(null),
-    onLobbyClosed:        () => { setLobbyClosed(true); setDisconnectedId(null); finishRestoring() },
+    onGameResumed:        (s) => { setSession(s); setDisconnectedIds(new Set()); finishRestoring(); setView(s.phase === 'Lobby' ? 'waiting' : 'game') },
+    onPlayerDisconnected: (id) => { setDisconnectedIds(prev => { const n = new Set(prev); n.add(id); return n }); soundAiyo() },
+    onPlayerReconnected:  (id) => setDisconnectedIds(prev => { if (!prev.has(id)) return prev; const n = new Set(prev); n.delete(id); return n }),
+    onLobbyClosed:        () => { setLobbyClosed(true); setDisconnectedIds(new Set()); finishRestoring() },
     onLobbyNotFound:      () => { setLobbyError('Your previous lobby is no longer available.'); handleReturnToLobby({ skipServerLeave: true }) },
   })
 
@@ -169,7 +171,7 @@ export default function App() {
       setIsLobbyCreator(create)
       setSession(s)
       setLobbyClosed(false)
-      setDisconnectedId(null)
+      setDisconnectedIds(new Set())
       setStartError(null)
       setActionError(null)
       setView('waiting')
@@ -249,7 +251,7 @@ export default function App() {
     setMyLobbyId('')
     setIsLobbyCreator(false)
     setLobbyClosed(false)
-    setDisconnectedId(null)
+    setDisconnectedIds(new Set())
     setStartError(null)
     setActionError(null)
     setMyHand([])
@@ -311,7 +313,7 @@ export default function App() {
         session={session} myPlayerId={myPlayerId} isCreator={isLobbyCreator}
         myHand={myHand}
         onPlayCard={handlePlayCard} onSetTrump={handleSetTrump} onStartRound={handleStartRound}
-        disconnectedId={disconnectedId} lobbyClosed={lobbyClosed} onReturnToLobby={() => handleReturnToLobby()}
+        disconnectedIds={disconnectedIds} lobbyClosed={lobbyClosed} onReturnToLobby={() => handleReturnToLobby()}
       />
       {actionError && (
         <div

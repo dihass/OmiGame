@@ -26,7 +26,7 @@ interface Props {
   onPlayCard:      (card: Card) => Promise<void>
   onSetTrump:      (suit: Suit) => Promise<void>
   onStartRound:    () => Promise<void>
-  disconnectedId:  string | null
+  disconnectedIds: Set<string>
   lobbyClosed:     boolean
   onReturnToLobby: () => void
 }
@@ -37,7 +37,7 @@ export default function GameTable({
   session, myPlayerId, isCreator,
   myHand,
   onPlayCard, onSetTrump, onStartRound,
-  disconnectedId, lobbyClosed, onReturnToLobby,
+  disconnectedIds, lobbyClosed, onReturnToLobby,
 }: Props) {
   const [actionError, setActionError]             = useState<string | null>(null)
   const [trickFlash, setTrickFlash]               = useState<'none' | 'gold' | 'red'>('none')
@@ -155,6 +155,12 @@ export default function GameTable({
     }
 
     if (session.roundHistory.length > prev.roundHistory.length) {
+      // Round just ended — drop UI state that belongs to the previous round so
+      // it doesn't bleed into the next one.
+      setLastTrick(null)
+      setShowLastTrick(false)
+      setActionError(null)
+
       const last = session.roundHistory[session.roundHistory.length - 1]
       const myTeamWon        = (last.teamAPointsEarned > 0 && myTeam === 'A') || (last.teamBPointsEarned > 0 && myTeam === 'B')
       const myTricksThisRound  = myTeam === 'A' ? last.teamATricks : last.teamBTricks
@@ -418,7 +424,7 @@ export default function GameTable({
           <PlayerSeat player={playerAt(topSeat)} mySeat={mySeat} isMe={topSeat === mySeat}
             isCurrentTurn={session.currentTurnIndex === topSeat} isDealer={session.currentDealerIndex === topSeat}
             cardCount={playerAt(topSeat)?.handCount ?? 0} label="Top"
-            disconnected={playerAt(topSeat)?.playerId === disconnectedId}
+            disconnected={!!playerAt(topSeat) && disconnectedIds.has(playerAt(topSeat)!.playerId)}
             countdown={slowWarning?.seat === topSeat ? slowWarning.secs : null} />
         </div>
 
@@ -428,7 +434,7 @@ export default function GameTable({
             <PlayerSeat player={playerAt(leftSeat)} mySeat={mySeat} isMe={leftSeat === mySeat}
               isCurrentTurn={session.currentTurnIndex === leftSeat} isDealer={session.currentDealerIndex === leftSeat}
               cardCount={playerAt(leftSeat)?.handCount ?? 0} label="Left"
-              disconnected={playerAt(leftSeat)?.playerId === disconnectedId}
+              disconnected={!!playerAt(leftSeat) && disconnectedIds.has(playerAt(leftSeat)!.playerId)}
               countdown={slowWarning?.seat === leftSeat ? slowWarning.secs : null} />
           </div>
 
@@ -723,7 +729,7 @@ export default function GameTable({
             <PlayerSeat player={playerAt(rightSeat)} mySeat={mySeat} isMe={rightSeat === mySeat}
               isCurrentTurn={session.currentTurnIndex === rightSeat} isDealer={session.currentDealerIndex === rightSeat}
               cardCount={playerAt(rightSeat)?.handCount ?? 0} label="Right"
-              disconnected={playerAt(rightSeat)?.playerId === disconnectedId}
+              disconnected={!!playerAt(rightSeat) && disconnectedIds.has(playerAt(rightSeat)!.playerId)}
               countdown={slowWarning?.seat === rightSeat ? slowWarning.secs : null} />
           </div>
         </div>
@@ -1038,7 +1044,7 @@ export default function GameTable({
 
       {/* Disconnect overlay */}
       <AnimatePresence>
-        {(disconnectedId || lobbyClosed) && phase !== 'MatchCompleted' && (
+        {(disconnectedIds.size > 0 || lobbyClosed) && phase !== 'MatchCompleted' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/75 flex items-center justify-center z-20">
             <motion.div initial={{ scale: 0.8, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.8, y: 20 }}
@@ -1055,18 +1061,25 @@ export default function GameTable({
                     Return to Lobby
                   </motion.button>
                 </>
-              ) : (
-                <>
-                  <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 0.9, repeat: Infinity }}
-                    className="text-4xl mb-3">⏳</motion.div>
-                  <h2 className="text-xl font-bold text-stone-100 mb-2">Player Disconnected</h2>
-                  <p className="text-stone-400 text-sm">
-                    <span className="text-white font-semibold">
-                      {session.players.find(p => p.playerId === disconnectedId)?.displayName ?? 'A player'}
-                    </span>{' '}has 10 s to reconnect…
-                  </p>
-                </>
-              )}
+              ) : (() => {
+                const names = session.players.filter(p => disconnectedIds.has(p.playerId)).map(p => p.displayName)
+                const label = names.length === 0 ? 'A player'
+                            : names.length === 1 ? names[0]
+                            : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]
+                return (
+                  <>
+                    <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ duration: 0.9, repeat: Infinity }}
+                      className="text-4xl mb-3">⏳</motion.div>
+                    <h2 className="text-xl font-bold text-stone-100 mb-2">
+                      {names.length > 1 ? 'Players Disconnected' : 'Player Disconnected'}
+                    </h2>
+                    <p className="text-stone-400 text-sm">
+                      <span className="text-white font-semibold">{label}</span>{' '}
+                      {names.length > 1 ? 'have' : 'has'} 10 s to reconnect…
+                    </p>
+                  </>
+                )
+              })()}
             </motion.div>
           </motion.div>
         )}
