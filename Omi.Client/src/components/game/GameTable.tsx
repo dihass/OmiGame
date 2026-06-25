@@ -64,12 +64,24 @@ export default function GameTable({
 
   const prevRef     = useRef<GameSession | null>(null)
   const prevHandLen = useRef(0)
+  // Centralized timer registry. Every transient effect (sound delay, screen flash,
+  // toast auto-dismiss) registers its timer here so we can clear them all on
+  // session change / unmount — otherwise stale callbacks fire on the next round.
+  const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set())
+  function defer(fn: () => void, ms: number): void {
+    const id = setTimeout(() => { timersRef.current.delete(id); fn() }, ms)
+    timersRef.current.add(id)
+  }
 
   const me       = session.players.find(p => p.playerId === myPlayerId)
   const mySeat   = me?.seatIndex ?? 0
   const myTeam   = teamOf(mySeat)
   const isMyTurn = session.currentTurnIndex === mySeat && session.phase === 'Playing'
   const amTrumpSelector = session.phase === 'TrumpSelection' && mySeat === (session.currentDealerIndex + 1) % 4
+  // Whichever team has more points (and at least 10) wins. Tie-breaker favours A,
+  // which can't actually happen since only one team earns per round.
+  const matchAWon = session.teamAMatchPoints >= 10 && session.teamAMatchPoints >= session.teamBMatchPoints
+  const myMatchWon = (matchAWon && myTeam === 'A') || (!matchAWon && myTeam === 'B')
 
   const bottomSeat = mySeat
   const rightSeat  = (mySeat + 1) % 4
@@ -89,9 +101,18 @@ export default function GameTable({
     if (myHand.length > prevHandLen.current && myHand.length > 0) {
       setDealtHandKey(k => k + 1)
       const newCards = myHand.length - prevHandLen.current
-      for (let i = 0; i < newCards; i++) setTimeout(() => soundDealCard(), i * 55)
+      for (let i = 0; i < newCards; i++) defer(() => soundDealCard(), i * 55)
     }
     prevHandLen.current = myHand.length
+
+    // A new card just got played → if we were still showing the frozen result
+    // of the *previous* trick, drop it immediately so we don't show stale cards
+    // while the next trick is being played.
+    if (frozenTrick && session.currentTrick.length > 0) {
+      setFrozenTrick(null)
+      setTrickResult(null)
+      if (trickTimer.current) { clearTimeout(trickTimer.current); trickTimer.current = null }
+    }
 
     if (prev.currentTrick.length === 4 && session.currentTrick.length === 0) {
       const aWon      = session.teamATricksWon > prev.teamATricksWon
@@ -101,12 +122,12 @@ export default function GameTable({
 
       if (myTeamWon) {
         setTrickFlash('gold')
-        setTimeout(() => setTrickFlash('none'), 700)
-        if (myTricks % 2 === 0) setTimeout(() => soundOiia(), 100)
+        defer(() => setTrickFlash('none'), 700)
+        if (myTricks % 2 === 0) defer(() => soundOiia(), 100)
       } else {
         setTrickFlash('red')
-        setTimeout(() => setTrickFlash('none'), 700)
-        if (oppTricks % 2 === 0) setTimeout(() => soundFaaahClip(), 150)
+        defer(() => setTrickFlash('none'), 700)
+        if (oppTricks % 2 === 0) defer(() => soundFaaahClip(), 150)
       }
 
       // Winner always leads next in Omi — session.currentTurnIndex is the winner
@@ -143,38 +164,41 @@ export default function GameTable({
       if (isDraw) {
         soundCatLaugh()
         setShowCatEmoji(true)
-        setTimeout(() => setShowCatEmoji(false), 2500)
+        defer(() => setShowCatEmoji(false), 2500)
       } else if (myTeamWon) {
         if (myTricksThisRound === 8) {
           soundAnimeWow()
           setScreenEffect('gold')
-          setTimeout(() => setScreenEffect('none'), 1000)
+          defer(() => setScreenEffect('none'), 1000)
           setConfetti('full')
-          setTimeout(() => soundBabyLaugh(), 700)
+          defer(() => soundBabyLaugh(), 700)
         } else {
           soundYippee()
           setConfetti('full')
-          if (myTricksThisRound >= 7) setTimeout(() => soundBabyLaugh(), 700)
+          if (myTricksThisRound >= 7) defer(() => soundBabyLaugh(), 700)
         }
       } else {
         if (oppTricksThisRound === 8) {
           soundOhHellNah()
           setScreenEffect('shake')
-          setTimeout(() => setScreenEffect('none'), 800)
+          defer(() => setScreenEffect('none'), 800)
         } else {
           soundEmotionalDamage()
           setScreenEffect('red')
-          setTimeout(() => setScreenEffect('none'), 900)
+          defer(() => setScreenEffect('none'), 900)
         }
       }
     }
 
     if (session.phase === 'MatchCompleted' && prev.phase !== 'MatchCompleted') {
-      const aWon = session.teamAMatchPoints >= 10
+      // Defensive: both points-over-10 shouldn't be possible (only one team
+      // earns per round) but compare both sides anyway so a future scoring
+      // tweak can't silently flip the displayed winner.
+      const aWon = session.teamAMatchPoints >= 10 && session.teamAMatchPoints >= session.teamBMatchPoints
       const iWon = (aWon && myTeam === 'A') || (!aWon && myTeam === 'B')
       soundMatchCredits()
-      if (iWon) { setConfetti('full'); setTimeout(() => soundMatchWinMeme(), 800) }
-      else       { setTimeout(() => soundSadMeow(), 600) }
+      if (iWon) { setConfetti('full'); defer(() => soundMatchWinMeme(), 800) }
+      else       { defer(() => soundSadMeow(), 600) }
     }
 
     if (
@@ -188,23 +212,31 @@ export default function GameTable({
     if (session.trumpSuit && !prev.trumpSuit) {
       soundTrumpRevealMeme()
       setTrumpRevealActive(true)
-      setTimeout(() => setTrumpRevealActive(false), 2200)
+      defer(() => setTrumpRevealActive(false), 2200)
     }
 
     if (prev.phase !== 'Playing' && session.phase === 'Playing') {
       const leader = session.players.find(p => p.seatIndex === session.currentTurnIndex)
       // If trump was just revealed, wait for that animation to clear first
       const delay = !prev.trumpSuit && !!session.trumpSuit ? 2500 : 300
-      setTimeout(() => {
+      defer(() => {
         setRoundLeader({
           name:     leader?.displayName ?? '?',
           isMe:     session.currentTurnIndex === mySeat,
           roundNum: session.roundHistory.length + 1,
         })
-        setTimeout(() => setRoundLeader(null), 2500)
+        defer(() => setRoundLeader(null), 2500)
       }, delay)
     }
   }, [session, me, mySeat, myTeam])
+
+  // Drop every pending timer on unmount — prevents stale callbacks from firing
+  // after the user navigates away or the lobby closes.
+  useEffect(() => () => {
+    timersRef.current.forEach(clearTimeout)
+    timersRef.current.clear()
+    if (trickTimer.current) clearTimeout(trickTimer.current)
+  }, [])
 
   // ── 15-second slow-player aiyo timer ────────────────────────────────────────
   useEffect(() => {
@@ -894,11 +926,11 @@ export default function GameTable({
             >
               <motion.div animate={{ rotate: [0, -10, 10, -10, 10, 0] }}
                 transition={{ delay: 0.4, duration: 0.6 }} className="text-5xl mb-3">
-                {(session.teamAMatchPoints >= 10 && myTeam === 'A') || (session.teamBMatchPoints >= 10 && myTeam === 'B') ? '🏆' : '😿'}
+                {myMatchWon ? '🏆' : '😿'}
               </motion.div>
               <h2 className="text-2xl font-black text-green-100 mb-1">Match Complete!</h2>
-              <p className={`font-bold text-xl mb-5 ${session.teamAMatchPoints >= 10 ? 'text-red-400' : 'text-gray-300'}`}>
-                {session.teamAMatchPoints >= 10 ? 'Team A Wins!' : 'Team B Wins!'}
+              <p className={`font-bold text-xl mb-5 ${matchAWon ? 'text-red-400' : 'text-gray-300'}`}>
+                {matchAWon ? 'Team A Wins!' : 'Team B Wins!'}
               </p>
 
               <div className="rounded-2xl p-4 mb-5 text-left" style={{ background: 'rgba(0,10,5,0.80)' }}>

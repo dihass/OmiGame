@@ -10,6 +10,7 @@ import GameTable from './components/game/GameTable'
 import ConnectionBanner from './components/ConnectionBanner'
 import { soundPlayerJoin, soundGameStart, soundAiyo } from './lib/sounds'
 import { saveSession, loadSession, clearSession, jwtTtlSeconds } from './lib/sessionStorage'
+import { randomUuid } from './lib/uuid'
 
 type View = 'lobby' | 'waiting' | 'game'
 
@@ -44,7 +45,13 @@ export default function App() {
   // ── SignalR lifecycle ──────────────────────────────────────────────────────
   const { state: connectionState, reconnect } = useSignalR(jwt, {
     onLobbyUpdated:       (s) => { setSession(s); finishRestoring(); setView(v => v === 'game' ? 'game' : 'waiting') },
-    onRoundStarted:       (s) => { if (s.roundHistory.length === 0) soundGameStart(); setSession(s); finishRestoring(); setView('game') },
+    onRoundStarted:       (s) => {
+      if (s.roundHistory.length === 0) soundGameStart()
+      // Drop the previous round's hand immediately — HandDealt for this round
+      // arrives a tick later, and without this the UI briefly shows the wrong cards.
+      setMyHand([])
+      setSession(s); finishRestoring(); setView('game')
+    },
     onTrumpSelected:      setSession,
     onCardPlayed:         setSession,
     onHandDealt:          (hand) => setMyHand(hand),
@@ -144,12 +151,12 @@ export default function App() {
       setLobbyError('Lobby code must be 6 letters or digits.')
       return
     }
-    if (typeof crypto?.randomUUID !== 'function') {
-      setLobbyError('Your browser is missing a feature we need (crypto.randomUUID). Please update it.')
+    let playerId: string
+    try { playerId = randomUuid() }
+    catch (e) {
+      setLobbyError(e instanceof Error ? e.message : 'Your browser is missing required features.')
       return
     }
-
-    const playerId = crypto.randomUUID()
     try {
       const token = await authToken(playerId, trimmedName, normalized)
       if (create) await gameApi.createRoom(normalized, token)

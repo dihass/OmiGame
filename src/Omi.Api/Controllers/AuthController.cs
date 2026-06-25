@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
@@ -38,15 +37,14 @@ public sealed partial class AuthController : ControllerBase
         if (!LobbyIdValidator.IsValid(request.LobbyId))
             return BadRequest(new { error = "LobbyId must be 4–50 alphanumeric characters (hyphens allowed)." });
 
-        // Pre-encoding guard: HTML encoding can expand characters (< → &lt;) so we
-        // also check the raw input length to avoid unnecessary work on huge inputs.
+        // Length + character-class only — React escapes on render so HTML encoding
+        // here would just corrupt names with apostrophes ("Test's" → "Test&#39;s").
         string trimmed = request.DisplayName.Trim();
-        if (trimmed.Length > 100)
-            return BadRequest(new { error = "Display name must not exceed 50 characters." });
+        if (trimmed.Length < 2 || trimmed.Length > 30)
+            return BadRequest(new { error = "Display name must be 2–30 characters." });
 
-        string sanitized = HtmlEncoder.Default.Encode(trimmed);
-        if (sanitized.Length > 50)
-            return BadRequest(new { error = "Display name must not exceed 50 characters." });
+        if (trimmed.Any(char.IsControl))
+            return BadRequest(new { error = "Display name contains invalid characters." });
 
         var descriptor = new SecurityTokenDescriptor
         {
@@ -54,7 +52,7 @@ public sealed partial class AuthController : ControllerBase
             {
                 ["playerId"]    = request.PlayerId,
                 ["lobbyId"]     = request.LobbyId,
-                ["displayName"] = sanitized
+                ["displayName"] = trimmed
             },
             Issuer             = _jwt.Issuer,
             Audience           = _jwt.Audience,

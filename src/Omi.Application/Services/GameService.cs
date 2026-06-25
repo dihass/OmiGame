@@ -196,6 +196,16 @@ public sealed class GameService
         var player = session.Players.FirstOrDefault(p => p.PlayerId == playerId);
         if (player is null) return GameSessionDto.From(session);
 
+        // Leaving mid-game wrecks the lobby — Omi requires exactly 4 players,
+        // re-seating would also break team assignments and turn pointers.
+        // Treat it as match abandonment: close the lobby for everyone.
+        if (session.Phase != GamePhase.Lobby)
+        {
+            await _games.DeleteAsync(lobbyId);
+            await _notifier.LobbyClosedAsync(lobbyId);
+            return null;
+        }
+
         session.Players.Remove(player);
 
         // Last player out closes the lobby entirely — no point keeping an empty room around

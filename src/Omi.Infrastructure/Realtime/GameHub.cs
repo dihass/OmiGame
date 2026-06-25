@@ -52,8 +52,20 @@ public sealed class GameHub : Hub
 
         if (entry is var (playerId, lobbyId))
         {
-            await _gameService.HandleDisconnectAsync(playerId, lobbyId);
-            _log.LogInformation("Player {PlayerId} disconnected from lobby {LobbyId}", playerId, lobbyId);
+            // Only mark the player disconnected if this was their LAST live connection.
+            // Otherwise (other tabs open, or a stale TCP timeout firing after a fast
+            // reload that already established a new connection), we'd incorrectly
+            // start the cleanup grace timer.
+            var remaining = await _connections.CountForPlayerAsync(lobbyId, playerId);
+            if (remaining == 0)
+            {
+                await _gameService.HandleDisconnectAsync(playerId, lobbyId);
+                _log.LogInformation("Player {PlayerId} disconnected (last connection) from lobby {LobbyId}", playerId, lobbyId);
+            }
+            else
+            {
+                _log.LogInformation("Connection dropped for {PlayerId} in {LobbyId}, but {Remaining} connection(s) remain", playerId, lobbyId, remaining);
+            }
         }
 
         await base.OnDisconnectedAsync(exception);
