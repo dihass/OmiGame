@@ -237,8 +237,13 @@ public sealed class GameService
         player.IsDisconnected      = true;
         player.DisconnectTimestamp = DateTime.UtcNow;
         await _games.SaveAsync(lobbyId, session);
-        await _notifier.PlayerDisconnectedAsync(lobbyId, playerId);
 
+        // Defer the disconnect announcement so a fast reload (old socket closes
+        // → new socket connects, both within ~2s) doesn't make every other
+        // player see the "Player Disconnected" overlay and hear the alert sound.
+        // The reconnect path clears IsDisconnected; the announcement re-checks it
+        // before firing, so reconnects inside the window are completely silent.
+        _cleanupQueue.EnqueueDisconnectAnnouncement(lobbyId, playerId, TimeSpan.FromSeconds(2));
         _cleanupQueue.Enqueue(lobbyId, playerId, TimeSpan.FromSeconds(10));
     }
 }
