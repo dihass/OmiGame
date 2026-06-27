@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { loadLastDisplayName } from '../../lib/sessionStorage'
 
 interface Props {
-  onJoin: (displayName: string, lobbyId: string, create: boolean) => Promise<void>
-  error:  string | null
+  onJoin:     (displayName: string, lobbyId: string, create: boolean) => Promise<void>
+  onOpenDocs: () => void
+  error:      string | null
 }
 
 function randomLobbyId() {
@@ -28,7 +29,7 @@ const NAME_MAX     = 30
 const CODE_LENGTH  = 6
 const CODE_PATTERN = /^[A-Z0-9]{6}$/
 
-export default function LobbyScreen({ onJoin, error }: Props) {
+export default function LobbyScreen({ onJoin, onOpenDocs, error }: Props) {
   // Pre-fill name from last visit — small UX win, no security cost (display name is public)
   const [name,    setName]    = useState(() => loadLastDisplayName())
   const [code,    setCode]    = useState('')
@@ -112,6 +113,14 @@ export default function LobbyScreen({ onJoin, error }: Props) {
           <p style={{ fontSize: 12, letterSpacing: '0.30em', color: '#3d7055', fontWeight: 600, textTransform: 'uppercase' }}>
             Sri Lankan Card Game
           </p>
+          <button
+            type="button"
+            onClick={onOpenDocs}
+            className="mt-4 text-[12px] font-bold transition-colors"
+            style={{ color: '#0dcfb1', letterSpacing: '0.12em', textTransform: 'uppercase' }}
+          >
+            Backend Docs
+          </button>
         </div>
 
         {/* Form card */}

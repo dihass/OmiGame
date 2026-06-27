@@ -8,6 +8,7 @@ import LobbyScreen from './components/lobby/LobbyScreen'
 import WaitingRoom from './components/lobby/WaitingRoom'
 import GameTable from './components/game/GameTable'
 import ConnectionBanner from './components/ConnectionBanner'
+import DocsPage from './components/docs/DocsPage'
 import { soundPlayerJoin, soundGameStart, soundAiyo } from './lib/sounds'
 import { saveSession, loadSession, clearSession, jwtTtlSeconds } from './lib/sessionStorage'
 import { randomUuid } from './lib/uuid'
@@ -24,7 +25,12 @@ function errorMessage(e: unknown, fallback: string): string {
   return fallback
 }
 
+function isDocsPath(pathname: string) {
+  return pathname === '/docs' || pathname === '/docs/'
+}
+
 export default function App() {
+  const [path, setPath]                   = useState(() => window.location.pathname)
   const [view, setView]                 = useState<View>('lobby')
   const [session, setSession]           = useState<GameSession | null>(null)
   const [myPlayerId, setMyPlayerId]     = useState('')
@@ -43,6 +49,17 @@ export default function App() {
   const [copied, setCopied]             = useState(false)
   const [isRestoring, setIsRestoring]   = useState(false)
   const restoreTimerRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    const handlePopState = () => setPath(window.location.pathname)
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  function navigate(pathname: string) {
+    window.history.pushState(null, '', pathname)
+    setPath(pathname)
+  }
 
   // ── SignalR lifecycle ──────────────────────────────────────────────────────
   const { state: connectionState, reconnect } = useSignalR(jwt, {
@@ -66,6 +83,8 @@ export default function App() {
 
   // ── Restore previous session on mount ─────────────────────────────────────
   useEffect(() => {
+    if (isDocsPath(window.location.pathname)) return
+
     const persisted = loadSession()
     if (!persisted) return
 
@@ -286,12 +305,16 @@ export default function App() {
   // Restore-in-progress overlay covers the gap between "JWT restored" and
   // "first SignalR event arrived." Without it the user would see the lobby
   // form flash before the game pops back.
+  if (isDocsPath(path)) {
+    return <DocsPage onBack={() => navigate('/')} />
+  }
+
   if (isRestoring && !session) {
     return <RestoringOverlay />
   }
 
   if (view === 'lobby' || !session) {
-    return <LobbyScreen onJoin={handleJoin} error={lobbyError} />
+    return <LobbyScreen onJoin={handleJoin} error={lobbyError} onOpenDocs={() => navigate('/docs')} />
   }
 
   if (view === 'waiting') {
