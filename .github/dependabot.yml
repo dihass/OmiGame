@@ -17,6 +17,12 @@ updates:
     groups:
       nuget-dependencies:
         patterns: ["*"]
+    ignore:
+      # 3.x restructured the object model (e.g. IOpenApiMediaType.Example is now
+      # read-only), which breaks Microsoft.AspNetCore.OpenApi's source generator.
+      # Un-ignore once ASP.NET Core's OpenApi package supports OpenApi.NET 3.x.
+      - dependency-name: "Microsoft.OpenApi"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
