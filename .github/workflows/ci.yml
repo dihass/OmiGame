@@ -50,6 +50,35 @@ jobs:
           name: coverage
           path: "**/coverage.cobertura.xml"
 
+  # ── Frontend build ───────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Omi.Client
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: Omi.Client/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Type-check & build
+        run: npm run build
+
+      # Lint has known pre-existing failures (tracked separately) — reported but
+      # not yet blocking, so it doesn't fail CI mid-fix.
+      - name: Lint (non-blocking)
+        run: npm run lint
+        continue-on-error: true
+
   # ── Docker build & push ───────────────────────────────────────────────────────
   docker:
     name: Docker Build & Push
