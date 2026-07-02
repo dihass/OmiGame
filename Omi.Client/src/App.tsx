@@ -314,7 +314,7 @@ export default function App() {
   }
 
   if (view === 'lobby' || !session) {
-    return <LobbyScreen onJoin={handleJoin} error={lobbyError} onOpenDocs={() => navigate('/docs')} />
+    return <LobbyScreen onJoin={handleJoin} error={lobbyError} />
   }
 
   if (view === 'waiting') {
