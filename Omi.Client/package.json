@@ -1,7 +1,14 @@
 {
   "name": "omi-client",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "React/TypeScript frontend for Omi, a real-time multiplayer Sri Lankan card game.",
+  "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dihass/OmiGame.git",
+    "directory": "Omi.Client"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -1,6 +1,11 @@
 # Omi
 
+[![CI](https://github.com/dihass/OmiGame/actions/workflows/ci.yml/badge.svg)](https://github.com/dihass/OmiGame/actions/workflows/ci.yml)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](LICENSE)
+
 A real-time multiplayer implementation of **Omi**, the Sri Lankan trick-taking card game, played 4 players in fixed partnerships (2v2).
+
+**[Play it live](https://omicardgame.vercel.app/)**
 
 Built as a production-style distributed system: a .NET backend pushing live game state over SignalR, backed by Redis for session/state storage, with a React frontend.
 
