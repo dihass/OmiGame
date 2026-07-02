@@ -7,6 +7,8 @@ A real-time multiplayer implementation of **Omi**, the Sri Lankan trick-taking c
 
 **[Play it live](https://omicardgame.vercel.app/)**
 
+![Omi gameplay — a trick in progress, trump set to hearts, live score and turn indicator](.github/assets/screenshot.png)
+
 Built as a production-style distributed system: a .NET backend pushing live game state over SignalR, backed by Redis for session/state storage, with a React frontend.
 
 ## Stack
