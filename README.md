@@ -59,3 +59,11 @@ dotnet test
 ## Docs
 
 Backend API documentation is available at the `/docs` route on the deployed client (not linked from the UI).
+
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md) for setup and workflow, and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community guidelines. Found a security issue? See [SECURITY.md](SECURITY.md) instead of opening a public issue.
+
+## License
+
+Licensed under [AGPL-3.0](LICENSE). If you run a modified version of this project as a public service, you're required to make your source changes available to your users.
