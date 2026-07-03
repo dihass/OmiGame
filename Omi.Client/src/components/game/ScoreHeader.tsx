@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { GameSession, RoundResult, Suit } from '../../types/game'
 import { SUIT_SYMBOL, isRedSuit } from '../../utils/cardHelpers'
+import LeaveButton from '../LeaveButton'
 
 interface Props {
   session: GameSession
   phase:   string
+  onLeave: () => void
 }
 
 /* ── Compact top bar ────────────────────────────────────────────────────────
@@ -14,7 +16,7 @@ interface Props {
    Round-level trick counts live inside the felt (RoundTricks component).
    Team names live on each PlayerSeat. History collapses behind a button.
 ─────────────────────────────────────────────────────────────────────────── */
-export default function ScoreHeader({ session, phase }: Props) {
+export default function ScoreHeader({ session, phase, onLeave }: Props) {
   const [historyOpen, setHistoryOpen] = useState(false)
   const roundNumber = session.roundHistory.length + 1
   const hasHistory  = session.roundHistory.length > 0
@@ -29,6 +31,8 @@ export default function ScoreHeader({ session, phase }: Props) {
       }}
     >
       <div className="flex items-center justify-between gap-2 px-3 py-2">
+        <LeaveButton onConfirm={onLeave} label="Leave" className="flex-shrink-0" />
+
         <MatchScore team="A" value={session.teamAMatchPoints} />
 
         <CentrePill phase={phase} trump={session.trumpSuit} roundNumber={roundNumber} />

@@ -414,7 +414,7 @@ export default function GameTable({
       </AnimatePresence>
 
       {/* Score header */}
-      <ScoreHeader session={session} phase={phase} />
+      <ScoreHeader session={session} phase={phase} onLeave={onReturnToLobby} />
 
       {/* ── Table ─────────────────────────────────────────────────────────── */}
       <div className="flex-1 flex flex-col items-center justify-between px-2 py-3 gap-2 max-w-2xl mx-auto w-full">

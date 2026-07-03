@@ -256,12 +256,15 @@ export default function App() {
    * Reset to the lobby screen. By default also notifies the server so other
    * players see the seat free up. Pass skipServerLeave=true for involuntary
    * exits (expired token, lobby gone) where there's no point hitting the API.
+   *
+   * The leave call is awaited before we tear down the JWT/SignalR connection —
+   * otherwise the local socket disconnect reaches the server first and gets
+   * treated as an accidental drop (10s "reconnecting" grace period) instead of
+   * an immediate, clean leave.
    */
-  function handleReturnToLobby(opts: { skipServerLeave?: boolean } = {}) {
-    // Fire-and-forget the leave so other players see the seat free up immediately.
-    // We don't await — UI shouldn't wait on the server for a clean return.
+  async function handleReturnToLobby(opts: { skipServerLeave?: boolean } = {}) {
     if (!opts.skipServerLeave && jwt && myLobbyId) {
-      void gameApi.leaveRoom(myLobbyId, jwt).catch(() => { /* best-effort */ })
+      try { await gameApi.leaveRoom(myLobbyId, jwt) } catch { /* best-effort */ }
     }
     clearSession()
     setJwt(null)
@@ -323,7 +326,8 @@ export default function App() {
         <ConnectionBanner state={connectionState} onReconnect={reconnect} />
         <WaitingRoom
           session={session} myPlayerId={myPlayerId} isCreator={isLobbyCreator}
-          onStart={handleStart} onCopyCode={handleCopyCode} copied={copied} startError={startError}
+          onStart={handleStart} onCopyCode={handleCopyCode} onLeave={() => handleReturnToLobby()}
+          copied={copied} startError={startError}
         />
       </>
     )
