@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { GameSession } from '../../types/game'
+import LeaveButton from '../LeaveButton'
 
 interface Props {
   session:    GameSession
@@ -8,6 +9,7 @@ interface Props {
   isCreator:  boolean
   onStart:    () => Promise<void>
   onCopyCode: () => void
+  onLeave:    () => void
   copied:     boolean
   startError: string | null
 }
@@ -29,7 +31,7 @@ function getSeatLayout(mySeat: number) {
 }
 
 export default function WaitingRoom({
-  session, myPlayerId, isCreator, onStart, onCopyCode, copied, startError,
+  session, myPlayerId, isCreator, onStart, onCopyCode, onLeave, copied, startError,
 }: Props) {
   const isFull  = session.players.length === 4
   const me      = session.players.find(p => p.playerId === myPlayerId)
@@ -56,6 +58,7 @@ export default function WaitingRoom({
         {/* Header row */}
         <div className="flex items-start justify-between mb-6">
           <div>
+            <LeaveButton onConfirm={onLeave} label="← Leave" className="mb-2" />
             <h2 className="font-display font-bold text-xl tracking-wide" style={{ color: '#d4a017' }}>
               Waiting Room
             </h2>
